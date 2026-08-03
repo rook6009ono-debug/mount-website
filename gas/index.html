@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<base target="_top">
+<style>
+/* ==================== デザイントークン ==================== */
+:root {
+  --bg: #ffffff;
+  --bg-sub: #fafaf9;
+  --bg-hover: #f1f1ef;
+  --border: #e9e8e6;
+  --text: #1f2328;
+  --text-sub: #6b7280;
+  --text-faint: #9ca3af;
+  --accent: #1a3c6e;
+  --accent-hover: #14305a;
+  --accent-soft: #eef2f9;
+  --green-bg: #e7f6ec; --green-fg: #15803d;
+  --gray-bg: #f3f4f6;  --gray-fg: #6b7280;
+  --red-bg: #fdecec;   --red-fg: #b91c1c;
+  --danger: #dc2626;
+  --radius: 8px;
+  --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.06);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: "Inter", "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==================== レイアウト ==================== */
+#app { display: flex; height: 100vh; }
+
+#sidebar {
+  width: 224px; flex-shrink: 0;
+  background: var(--bg-sub);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  padding: 20px 12px 16px;
+}
+.brand {
+  font-size: 15px; font-weight: 700; letter-spacing: .02em;
+  padding: 4px 10px 20px; color: var(--text);
+}
+.brand span { color: var(--accent); }
+nav { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border: none; background: none; width: 100%;
+  border-radius: 6px; cursor: pointer; text-align: left;
+  font-size: 14px; color: var(--text-sub); font-family: inherit;
+  transition: background .12s, color .12s;
+}
+.nav-item:hover { background: var(--bg-hover); color: var(--text); }
+.nav-item.active { background: var(--bg-hover); color: var(--text); font-weight: 600; }
+.nav-item .ico { width: 18px; text-align: center; }
+.sidebar-foot { padding: 8px 10px; font-size: 11px; color: var(--text-faint); }
+.nav-badge:not(:empty) {
+  margin-left: auto; background: var(--danger); color: #fff;
+  font-size: 10px; font-weight: 700; border-radius: 99px; padding: 1px 7px;
+}
+.inq-select {
+  padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px;
+  font-size: 12px; font-family: inherit; background: var(--bg); cursor: pointer;
+}
+.inq-msg { font-size: 12.5px; color: var(--text-sub); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 380px; }
+
+#main { flex: 1; overflow-y: auto; }
+.view { display: none; max-width: 880px; margin: 0 auto; padding: 48px 40px 80px; }
+.view.active { display: block; }
+
+.page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
+.page-title { font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
+.page-desc { color: var(--text-sub); margin: 6px 0 28px; line-height: 1.7; }
+
+/* ==================== 部品 ==================== */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--bg); color: var(--text); font-size: 13px; font-weight: 500;
+  cursor: pointer; font-family: inherit; white-space: nowrap;
+  transition: background .12s, border-color .12s, opacity .12s;
+}
+.btn:hover { background: var(--bg-hover); }
+.btn:disabled { opacity: .5; cursor: default; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-ghost { border-color: transparent; color: var(--text-sub); padding: 5px 8px; }
+.btn-ghost:hover { color: var(--text); }
+.btn-danger-ghost { border-color: transparent; color: var(--text-sub); padding: 5px 8px; }
+.btn-danger-ghost:hover { color: var(--danger); background: var(--red-bg); }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+
+.card {
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--bg); padding: 24px; margin-bottom: 16px;
+}
+.card-title { font-size: 13px; font-weight: 600; color: var(--text-sub); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 18px; }
+
+.stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.stat {
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 18px 20px;
+}
+.stat .num { font-size: 26px; font-weight: 700; letter-spacing: -.02em; }
+.stat .num small { font-size: 13px; font-weight: 500; color: var(--text-faint); }
+.stat .label { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
+
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 99px;
+  font-size: 11px; font-weight: 600; line-height: 1.6; white-space: nowrap;
+}
+.badge.published { background: var(--green-bg); color: var(--green-fg); }
+.badge.draft { background: var(--gray-bg); color: var(--gray-fg); }
+.badge.archived { background: var(--red-bg); color: var(--red-fg); }
+
+table { width: 100%; border-collapse: collapse; }
+th {
+  text-align: left; font-size: 11px; font-weight: 600; color: var(--text-faint);
+  text-transform: uppercase; letter-spacing: .05em;
+  padding: 8px 12px; border-bottom: 1px solid var(--border);
+}
+td { padding: 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tbody tr { transition: background .1s; }
+tbody tr:hover { background: var(--bg-sub); }
+.t-title { font-weight: 600; cursor: pointer; }
+.t-title:hover { color: var(--accent); text-decoration: underline; }
+.t-sub { font-size: 12px; color: var(--text-faint); font-weight: 400; margin-top: 2px; }
+.t-actions { text-align: right; white-space: nowrap; }
+.t-date { color: var(--text-sub); font-size: 13px; white-space: nowrap; }
+
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
+.tab {
+  padding: 8px 12px; border: none; background: none; cursor: pointer;
+  font-size: 13px; color: var(--text-sub); font-family: inherit;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--text); font-weight: 600; border-bottom-color: var(--accent); }
+.tab .cnt { color: var(--text-faint); font-size: 12px; margin-left: 4px; }
+
+.empty {
+  padding: 56px 20px; text-align: center; color: var(--text-sub);
+  border: 1px dashed var(--border); border-radius: var(--radius);
+}
+.empty .big { font-size: 32px; margin-bottom: 12px; }
+
+/* ==================== フォーム ==================== */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 20px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field.wide { grid-column: 1 / -1; }
+.field label { font-size: 12px; font-weight: 600; color: var(--text-sub); }
+.field label .req { color: var(--danger); margin-left: 2px; }
+.field input[type=text], .field input[type=email], .field input[type=url],
+.field input[type=date], .field input[type=datetime-local],
+.field select, .field textarea {
+  padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px;
+  font-size: 14px; font-family: inherit; color: var(--text); background: var(--bg);
+  transition: border-color .12s, box-shadow .12s; width: 100%;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.field textarea { resize: vertical; min-height: 84px; line-height: 1.7; }
+.field textarea.tall { min-height: 220px; }
+.field .hint { font-size: 11px; color: var(--text-faint); }
+.check-field { display: flex; align-items: center; gap: 8px; padding-top: 22px; }
+.check-field input { width: 16px; height: 16px; accent-color: var(--accent); }
+.check-field label { font-size: 13px; color: var(--text); cursor: pointer; }
+
+/* ==================== モーダル ==================== */
+#modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 100;
+  background: rgba(20, 20, 20, .45);
+  align-items: flex-start; justify-content: center;
+  padding: 6vh 16px 16px; overflow-y: auto;
+}
+#modal-overlay.open { display: flex; }
+#modal {
+  background: var(--bg); border-radius: 12px; box-shadow: var(--shadow);
+  width: 100%; max-width: 680px; padding: 28px;
+}
+#modal.lg { max-width: 780px; }
+.modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-title { font-size: 17px; font-weight: 700; }
+.modal-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+/* ==================== トースト / ローダー ==================== */
+#toast {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: #1f2328; color: #fff; padding: 10px 20px; border-radius: 8px;
+  font-size: 13px; opacity: 0; pointer-events: none; z-index: 200;
+  transition: opacity .2s, transform .2s; box-shadow: var(--shadow); max-width: 90vw;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+#toast.error { background: var(--danger); }
+
+#loader {
+  position: fixed; inset: 0; background: var(--bg); z-index: 300;
+  display: flex; flex-direction: column; gap: 14px; align-items: center; justify-content: center;
+  color: var(--text-sub); font-size: 13px;
+}
+.spinner {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 3px solid var(--border); border-top-color: var(--accent);
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.busy { opacity: .55; pointer-events: none; }
+
+/* ==================== 会社概要 追加項目 ==================== */
+.ext-row {
+  display: grid; grid-template-columns: 200px 1fr auto; gap: 10px;
+  padding: 12px 0; border-bottom: 1px solid var(--border); align-items: start;
+}
+.ext-row:last-child { border-bottom: none; }
+.ext-row input, .ext-row textarea {
+  padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px;
+  font-size: 14px; font-family: inherit; color: var(--text); width: 100%;
+  transition: border-color .12s, box-shadow .12s;
+}
+.ext-row input:focus, .ext-row textarea:focus {
+  outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.ext-row textarea { min-height: 64px; resize: vertical; line-height: 1.7; }
+.ext-btns { display: flex; gap: 2px; padding-top: 4px; }
+
+/* ==================== レスポンシブ ==================== */
+@media (max-width: 760px) {
+  #app { flex-direction: column; }
+  #sidebar { width: 100%; flex-direction: row; align-items: center; padding: 8px 12px; border-right: none; border-bottom: 1px solid var(--border); }
+  .brand { padding: 0 12px 0 0; white-space: nowrap; }
+  nav { flex-direction: row; overflow-x: auto; }
+  .nav-item { white-space: nowrap; padding: 6px 10px; }
+  .nav-item .txt { display: none; }
+  .sidebar-foot { display: none; }
+  .view { padding: 24px 16px 60px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .ext-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="loader"><div class="spinner"></div><div>読み込んでいます…</div></div>
+
+<div id="app">
+  <aside id="sidebar">
+    <div class="brand">Equal <span>Web</span></div>
+    <nav>
+      <button class="nav-item active" data-view="dashboard"><span class="ico">🏠</span><span class="txt">ダッシュボード</span></button>
+      <button class="nav-item" data-view="company"><span class="ico">🏢</span><span class="txt">会社情報</span></button>
+      <button class="nav-item" data-view="news"><span class="ico">📰</span><span class="txt">お知らせ</span></button>
+      <button class="nav-item" data-view="article"><span class="ico">✍</span><span class="txt">記事</span></button>
+      <button class="nav-item" data-view="inquiry"><span class="ico">📥</span><span class="txt">お問い合わせ</span><span class="nav-badge" id="inqBadge"></span></button>
+      <button class="nav-item" data-view="settings"><span class="ico">⚙</span><span class="txt">設定</span></button>
+    </nav>
+    <div class="sidebar-foot" id="foot-version">Equal Web</div>
+  </aside>
+
+  <main id="main">
+    <div class="view active" id="view-dashboard"></div>
+    <div class="view" id="view-company"></div>
+    <div class="view" id="view-news"></div>
+    <div class="view" id="view-article"></div>
+    <div class="view" id="view-inquiry"></div>
+    <div class="view" id="view-settings"></div>
+  </main>
+</div>
+
+<div id="modal-overlay"><div id="modal"></div></div>
+<div id="toast"></div>
+
+<script>
+/* ==================== ローカルプレビュー用モック ====================
+   GAS上（google.script.run が存在する環境）では一切動作しない。
+   index.html をブラウザで直接開いたときだけサンプルデータで画面を確認できる。 */
+if (typeof google === 'undefined') {
+  (function () {
+    var mockDb = {
+      company: {
+        company_id: 'CMP-0001', company_name: 'サンプル株式会社', company_name_kana: 'さんぷるかぶしきがいしゃ',
+        representative_name: '山田 太郎', postal_code: '010-0001', address: '秋田県秋田市中通1-1-1',
+        tel: '018-000-0000', fax: '', email: 'info@example.com', business_hours: '9:00〜18:00',
+        holidays: '土日祝', established_date: '2010-04-01', capital: '500万円', employees: '12名',
+        business_description: 'サンプル事業', logo_url: '', website_url: '', google_map_url: '',
+        instagram_url: '', x_url: '', facebook_url: '', line_url: '', youtube_url: '',
+        status: 'active', created_at: '2026-07-14 09:00:00', updated_at: '2026-07-14 09:00:00'
+      },
+      news: [
+        { news_id: 'NEWS-0001', company_id: 'CMP-0001', title: 'ホームページをリニューアルしました', body: 'サンプル本文', category: 'お知らせ', link_url: '', image_url: '', is_pinned: true, published_at: '2026-07-14 09:00:00', status: 'published', created_at: '2026-07-14 09:00:00', updated_at: '2026-07-14 09:00:00' },
+        { news_id: 'NEWS-0002', company_id: 'CMP-0001', title: '夏季休業のお知らせ（8/13〜8/16）', body: '', category: '営業案内', link_url: '', image_url: '', is_pinned: false, published_at: '2026-07-10 10:00:00', status: 'draft', created_at: '2026-07-10 10:00:00', updated_at: '2026-07-10 10:00:00' }
+      ],
+      article: [
+        { article_id: 'ART-0001', company_id: 'CMP-0001', title: 'はじめての記事（サンプル）', slug: 'sample-first-article', summary: 'サンプル記事です', body: '# 見出し\n\n本文', category: 'ブログ', tags: 'サンプル', thumbnail_url: '', author_name: '管理者', is_featured: false, published_at: '2026-07-12 09:00:00', status: 'published', created_at: '2026-07-12 09:00:00', updated_at: '2026-07-12 09:00:00' }
+      ],
+      inquiry: [
+        { inquiry_id: 'INQ-0001', company_id: 'CMP-0001', name: '佐藤 一郎', company: '株式会社サンプル建設', email: 'sato@example.com', topic: 'Equal Core Foundation（経営基盤の構築）', message: '社員が20名を超えて情報管理が崩れ始めています。まず何から始めればよいか相談したいです。', status: '未対応', created_at: '2026-07-15 10:30:00', updated_at: '2026-07-15 10:30:00' }
+      ],
+      sitesettings: [
+        { setting_id: 'SET-0001', company_id: 'CMP-0001', label: '建設業許可', value: '国土交通大臣 許可（特-0）第00000号（サンプル）', display_order: 10, status: 'active', created_at: '2026-07-17 09:00:00', updated_at: '2026-07-17 09:00:00' },
+        { setting_id: 'SET-0002', company_id: 'CMP-0001', label: '所属団体', value: 'サンプル工業会／サンプル協同組合', display_order: 20, status: 'active', created_at: '2026-07-17 09:00:00', updated_at: '2026-07-17 09:00:00' }
+      ]
+    };
+    var api = {
+      apiGetAll: function () {
+        return { version: 'v3.3 (ローカルプレビュー)', spreadsheetName: 'Equal Web_DB（モック）', spreadsheetUrl: '#',
+          company: mockDb.company, news: mockDb.news, article: mockDb.article, inquiry: mockDb.inquiry,
+          sitesettings: mockDb.sitesettings };
+      },
+      apiSaveSettings: function (list) {
+        var max = 0;
+        mockDb.sitesettings.forEach(function (s) {
+          var m = String(s.setting_id).match(/^SET-(\d+)$/);
+          if (m) max = Math.max(max, parseInt(m[1], 10));
+        });
+        mockDb.sitesettings = list.map(function (item, i) {
+          var id = item.setting_id;
+          if (!id) { max++; id = 'SET-' + String(max).padStart(4, '0'); }
+          return {
+            setting_id: id,
+            company_id: 'CMP-0001', label: item.label, value: item.value,
+            display_order: (i + 1) * 10, status: 'active',
+            created_at: '2026-07-17 09:00:00', updated_at: '2026-07-17 09:00:00'
+          };
+        });
+        return mockDb.sitesettings;
+      },
+      apiGetCompany: function () { return mockDb.company; },
+      apiSaveCompany: function (input) { Object.assign(mockDb.company, input); return mockDb.company; },
+      apiList: function (kind) { return mockDb[kind]; },
+      apiSaveItem: function (kind, input) {
+        var idKey = kind === 'news' ? 'news_id' : 'article_id';
+        if (input[idKey]) {
+          var t = mockDb[kind].filter(function (r) { return r[idKey] === input[idKey]; })[0];
+          Object.assign(t, input);
+        } else {
+          input[idKey] = (kind === 'news' ? 'NEWS-' : 'ART-') + String(mockDb[kind].length + 1).padStart(4, '0');
+          input.status = 'draft';
+          mockDb[kind].push(input);
+        }
+        return mockDb[kind];
+      },
+      apiSetStatus: function (kind, id, status) {
+        var idKey = { news: 'news_id', article: 'article_id', inquiry: 'inquiry_id' }[kind];
+        mockDb[kind].filter(function (r) { return r[idKey] === id; })[0].status = status;
+        return mockDb[kind];
+      }
+    };
+    function runner(ok, ng) {
+      var obj = {
+        withSuccessHandler: function (f) { return runner(f, ng); },
+        withFailureHandler: function (f) { return runner(ok, f); }
+      };
+      Object.keys(api).forEach(function (name) {
+        obj[name] = function () {
+          var args = arguments;
+          setTimeout(function () {
+            try { ok && ok(api[name].apply(null, args)); }
+            catch (e) { ng && ng(e); }
+          }, 150);
+        };
+      });
+      return obj;
+    }
+    window.google = { script: { run: runner(null, null) } };
+  })();
+}
+
+/* ==================== 状態 ==================== */
+var state = {
+  version: '',
+  spreadsheetName: '',
+  spreadsheetUrl: '',
+  company: null,
+  news: [],
+  article: [],
+  inquiry: [],
+  sitesettings: [],
+  filter: { news: 'all', article: 'all' },
+  currentView: 'dashboard'
+};
+var STATUS_INQUIRY = ['未対応', '対応中', '対応済'];
+
+/* ==================== 定義（サーバーのシート定義と対応） ==================== */
+var CATEGORY = {
+  news: ['お知らせ', '営業案内', '採用', 'キャンペーン', 'その他'],
+  article: ['ブログ', '施工事例', 'スタッフ紹介', 'コラム', 'その他']
+};
+var KIND_LABEL = { news: 'お知らせ', article: '記事' };
+var ID_KEY = { news: 'news_id', article: 'article_id', inquiry: 'inquiry_id' };
+
+var COMPANY_GROUPS = [
+  { title: '基本情報', fields: [
+    { key: 'company_name', label: '会社名', req: true },
+    { key: 'company_name_kana', label: '会社名かな' },
+    { key: 'representative_name', label: '代表者名' },
+    { key: 'established_date', label: '設立日', type: 'date' },
+    { key: 'capital', label: '資本金', hint: '例: 500万円' },
+    { key: 'employees', label: '従業員数', hint: '例: 12名' },
+    { key: 'business_description', label: '事業内容', type: 'textarea', wide: true }
+  ]},
+  { title: '連絡先', fields: [
+    { key: 'postal_code', label: '郵便番号', hint: '例: 010-0001' },
+    { key: 'tel', label: '電話番号' },
+    { key: 'fax', label: 'FAX' },
+    { key: 'email', label: 'メールアドレス' },
+    { key: 'address', label: '住所', wide: true }
+  ]},
+  { title: '営業情報', fields: [
+    { key: 'business_hours', label: '営業時間', hint: '例: 9:00〜18:00' },
+    { key: 'holidays', label: '定休日' }
+  ]},
+  { title: 'URL・SNS', fields: [
+    { key: 'logo_url', label: 'ロゴ画像URL' },
+    { key: 'website_url', label: '現ホームページURL' },
+    { key: 'google_map_url', label: 'GoogleマップURL' },
+    { key: 'instagram_url', label: 'Instagram' },
+    { key: 'x_url', label: 'X（旧Twitter）' },
+    { key: 'facebook_url', label: 'Facebook' },
+    { key: 'line_url', label: 'LINE公式' },
+    { key: 'youtube_url', label: 'YouTube' }
+  ]}
+];
+
+/* ==================== ユーティリティ ==================== */
+function $(sel) { return document.querySelector(sel); }
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function toast(msg, isError) {
+  var t = $('#toast');
+  t.textContent = msg;
+  t.className = isError ? 'show error' : 'show';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function () { t.className = ''; }, 2600);
+}
+function call(fn) {
+  var args = Array.prototype.slice.call(arguments, 1);
+  return new Promise(function (resolve, reject) {
+    var runner = google.script.run
+      .withSuccessHandler(resolve)
+      .withFailureHandler(function (e) { reject(e); });
+    runner[fn].apply(runner, args);
+  });
+}
+function fmtDate(s) {
+  if (!s) return '—';
+  return String(s).slice(0, 16); // yyyy-MM-dd HH:mm
+}
+function toLocalInput(s) {
+  if (!s) return '';
+  return String(s).slice(0, 16).replace(' ', 'T'); // → yyyy-MM-ddTHH:mm
+}
+function fromLocalInput(v) {
+  if (!v) return '';
+  return v.replace('T', ' ') + ':00'; // → yyyy-MM-dd HH:mm:ss
+}
+function nowLocalInput() {
+  var d = new Date();
+  function p(n) { return String(n).padStart(2, '0'); }
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+function statusBadge(st) {
+  var label = { published: '公開中', draft: '下書き', archived: '削除済み' }[st] || st;
+  return '<span class="badge ' + esc(st) + '">' + esc(label) + '</span>';
+}
+
+/* ==================== ナビゲーション ==================== */
+document.querySelectorAll('.nav-item').forEach(function (btn) {
+  btn.addEventListener('click', function () { navTo(btn.dataset.view); });
+});
+function navTo(view) {
+  state.currentView = view;
+  document.querySelectorAll('.nav-item').forEach(function (b) {
+    b.classList.toggle('active', b.dataset.view === view);
+  });
+  document.querySelectorAll('.view').forEach(function (v) {
+    v.classList.toggle('active', v.id === 'view-' + view);
+  });
+  render(view);
+  $('#main').scrollTop = 0;
+}
+function render(view) {
+  if (view === 'dashboard') renderDashboard();
+  if (view === 'company') renderCompany();
+  if (view === 'news') renderList('news');
+  if (view === 'article') renderList('article');
+  if (view === 'inquiry') renderInquiry();
+  if (view === 'settings') renderSettings();
+  updateInquiryBadge();
+}
+function updateInquiryBadge() {
+  var n = state.inquiry.filter(function (r) { return r.status === '未対応'; }).length;
+  var el = $('#inqBadge');
+  if (el) el.textContent = n > 0 ? String(n) : '';
+}
+
+/* ==================== ダッシュボード ==================== */
+function counts(kind) {
+  var rows = state[kind];
+  return {
+    total: rows.filter(function (r) { return r.status !== 'archived'; }).length,
+    published: rows.filter(function (r) { return r.status === 'published'; }).length,
+    draft: rows.filter(function (r) { return r.status === 'draft'; }).length
+  };
+}
+function renderDashboard() {
+  var c = state.company;
+  var n = counts('news'), a = counts('article');
+  var recent = function (kind) {
+    var rows = state[kind].filter(function (r) { return r.status !== 'archived'; })
+      .slice().sort(function (x, y) { return String(y.published_at).localeCompare(String(x.published_at)); })
+      .slice(0, 5);
+    if (!rows.length) return '<div style="color:var(--text-faint);padding:8px 0;">まだありません</div>';
+    return rows.map(function (r) {
+      return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">' +
+        statusBadge(r.status) +
+        '<span class="t-title" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" onclick="openEditor(\'' + kind + '\',\'' + esc(r[ID_KEY[kind]]) + '\')">' + esc(r.title) + '</span>' +
+        '<span class="t-date">' + esc(fmtDate(r.published_at)) + '</span></div>';
+    }).join('');
+  };
+  $('#view-dashboard').innerHTML =
+    '<div class="page-head"><div><div class="page-title">' + esc(c ? c.company_name : 'ダッシュボード') + '</div>' +
+    '<div class="page-desc">ホームページの情報をここで管理します。</div></div></div>' +
+    '<div class="stat-row">' +
+      '<div class="stat"><div class="num">' + n.published + ' <small>/ ' + n.total + '件</small></div><div class="label">📰 お知らせ（公開中 / 全体）</div></div>' +
+      '<div class="stat"><div class="num">' + a.published + ' <small>/ ' + a.total + '件</small></div><div class="label">✍ 記事（公開中 / 全体）</div></div>' +
+      '<div class="stat"><div class="num">' + (n.draft + a.draft) + ' <small>件</small></div><div class="label">📝 下書き</div></div>' +
+      '<div class="stat"><div class="num">' + state.inquiry.filter(function (r) { return r.status === '未対応'; }).length + ' <small>件</small></div><div class="label">📥 未対応のお問い合わせ</div></div>' +
+    '</div>' +
+    '<div class="card"><div class="card-title">最近のお知らせ</div>' + recent('news') +
+      '<div style="margin-top:14px;"><button class="btn btn-sm" onclick="navTo(\'news\')">お知らせ一覧へ →</button></div></div>' +
+    '<div class="card"><div class="card-title">最近の記事</div>' + recent('article') +
+      '<div style="margin-top:14px;"><button class="btn btn-sm" onclick="navTo(\'article\')">記事一覧へ →</button></div></div>';
+}
+
+/* ==================== 会社情報 ==================== */
+function renderCompany() {
+  var c = state.company || {};
+  var html =
+    '<div class="page-head"><div><div class="page-title">会社情報</div>' +
+    '<div class="page-desc">ホームページに表示される会社の基本情報です。変更後は右上の「保存」を押してください。</div></div>' +
+    '<button class="btn btn-primary" id="btn-save-company">保存</button></div>' +
+    '<form id="company-form">';
+  COMPANY_GROUPS.forEach(function (g) {
+    html += '<div class="card"><div class="card-title">' + esc(g.title) + '</div><div class="form-grid">';
+    g.fields.forEach(function (f) {
+      var val = c[f.key] == null ? '' : c[f.key];
+      html += '<div class="field' + (f.wide ? ' wide' : '') + '">' +
+        '<label>' + esc(f.label) + (f.req ? '<span class="req">*</span>' : '') + '</label>';
+      if (f.type === 'textarea') {
+        html += '<textarea name="' + f.key + '">' + esc(val) + '</textarea>';
+      } else {
+        html += '<input type="' + (f.type || 'text') + '" name="' + f.key + '" value="' + esc(val) + '">';
+      }
+      if (f.hint) html += '<span class="hint">' + esc(f.hint) + '</span>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+  });
+  html += '</form>';
+
+  // 会社概要 追加項目（site_settings）
+  var extras = state.sitesettings
+    .filter(function (s) { return s.status !== 'archived'; })
+    .slice().sort(function (a, b) { return (Number(a.display_order) || 0) - (Number(b.display_order) || 0); });
+  html += '<div class="card"><div class="card-title">会社概要 追加項目</div>' +
+    '<div style="color:var(--text-sub);font-size:12.5px;margin-bottom:14px;line-height:1.8;">' +
+    '建設業許可・保有資格・所属団体・沿革など、基本情報にない項目を自由に追加できます。<br>' +
+    'ホームページの会社概要表に、ここの並び順のまま表示されます。</div>' +
+    '<div id="ext-rows">' + extras.map(extRowHtml_).join('') + '</div>' +
+    '<div style="margin-top:16px;display:flex;gap:8px;">' +
+    '<button type="button" class="btn" id="btn-add-ext">＋ 項目を追加</button>' +
+    '<button type="button" class="btn btn-primary" id="btn-save-ext">追加項目を保存</button></div></div>';
+
+  $('#view-company').innerHTML = html;
+  $('#btn-save-company').addEventListener('click', saveCompany);
+  $('#btn-add-ext').addEventListener('click', function () {
+    $('#ext-rows').insertAdjacentHTML('beforeend', extRowHtml_({}));
+    var rows = $('#ext-rows').children;
+    rows[rows.length - 1].querySelector('.ext-label').focus();
+  });
+  $('#btn-save-ext').addEventListener('click', saveSettings);
+  $('#ext-rows').addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-act]');
+    if (!btn) return;
+    var row = btn.closest('.ext-row');
+    var act = btn.dataset.act;
+    if (act === 'del') {
+      if (row.querySelector('.ext-label').value.trim() === '' &&
+          row.querySelector('.ext-value').value.trim() === '') { row.remove(); return; }
+      if (confirm('この項目を削除しますか？（「追加項目を保存」を押すと確定します）')) row.remove();
+    }
+    if (act === 'up' && row.previousElementSibling) row.parentNode.insertBefore(row, row.previousElementSibling);
+    if (act === 'down' && row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row);
+  });
+}
+function extRowHtml_(s) {
+  return '<div class="ext-row" data-id="' + esc(s.setting_id || '') + '">' +
+    '<input type="text" class="ext-label" placeholder="項目名（例: 建設業許可）" value="' + esc(s.label || '') + '">' +
+    '<textarea class="ext-value" placeholder="内容（改行できます）">' + esc(s.value || '') + '</textarea>' +
+    '<div class="ext-btns">' +
+    '<button type="button" class="btn btn-ghost btn-sm" data-act="up" title="上へ">↑</button>' +
+    '<button type="button" class="btn btn-ghost btn-sm" data-act="down" title="下へ">↓</button>' +
+    '<button type="button" class="btn btn-danger-ghost btn-sm" data-act="del" title="削除">✕</button>' +
+    '</div></div>';
+}
+function saveSettings() {
+  var list = [];
+  var invalid = false;
+  Array.prototype.forEach.call($('#ext-rows').children, function (row) {
+    var label = row.querySelector('.ext-label').value.trim();
+    var value = row.querySelector('.ext-value').value;
+    if (!label && !value.trim()) return; // 完全に空の行は無視
+    if (!label) { invalid = true; row.querySelector('.ext-label').focus(); return; }
+    list.push({ setting_id: row.dataset.id || '', label: label, value: value });
+  });
+  if (invalid) { toast('項目名が空の行があります', true); return; }
+  var btn = $('#btn-save-ext');
+  btn.disabled = true; btn.textContent = '保存中…';
+  call('apiSaveSettings', list).then(function (rows) {
+    state.sitesettings = rows || [];
+    renderCompany();
+    toast('追加項目を保存しました');
+  }).catch(function (e) {
+    toast(e.message || '保存に失敗しました', true);
+    btn.disabled = false; btn.textContent = '追加項目を保存';
+  });
+}
+function saveCompany() {
+  var form = $('#company-form');
+  var input = { company_id: state.company ? state.company.company_id : '' };
+  COMPANY_GROUPS.forEach(function (g) {
+    g.fields.forEach(function (f) { input[f.key] = form.elements[f.key].value.trim(); });
+  });
+  if (!input.company_name) { toast('会社名は必須です', true); return; }
+  var btn = $('#btn-save-company');
+  btn.disabled = true; btn.textContent = '保存中…';
+  call('apiSaveCompany', input).then(function (company) {
+    state.company = company;
+    toast('会社情報を保存しました');
+  }).catch(function (e) {
+    toast(e.message || '保存に失敗しました', true);
+  }).finally(function () {
+    btn.disabled = false; btn.textContent = '保存';
+  });
+}
+
+/* ==================== 一覧（お知らせ / 記事 共通） ==================== */
+function renderList(kind) {
+  var rows = state[kind];
+  var filter = state.filter[kind];
+  var label = KIND_LABEL[kind];
+
+  var visible = rows.filter(function (r) {
+    if (filter === 'all') return r.status !== 'archived';
+    return r.status === filter;
+  }).slice().sort(function (x, y) {
+    if (kind === 'news') {
+      var p = (y.is_pinned === true ? 1 : 0) - (x.is_pinned === true ? 1 : 0);
+      if (p !== 0) return p;
+    }
+    return String(y.published_at).localeCompare(String(x.published_at));
+  });
+
+  var cnt = {
+    all: rows.filter(function (r) { return r.status !== 'archived'; }).length,
+    published: rows.filter(function (r) { return r.status === 'published'; }).length,
+    draft: rows.filter(function (r) { return r.status === 'draft'; }).length,
+    archived: rows.filter(function (r) { return r.status === 'archived'; }).length
+  };
+  var tabs = [
+    ['all', 'すべて', cnt.all], ['published', '公開中', cnt.published],
+    ['draft', '下書き', cnt.draft], ['archived', '削除済み', cnt.archived]
+  ].map(function (t) {
+    return '<button class="tab' + (filter === t[0] ? ' active' : '') + '" onclick="setFilter(\'' + kind + '\',\'' + t[0] + '\')">' +
+      t[1] + '<span class="cnt">' + t[2] + '</span></button>';
+  }).join('');
+
+  var body;
+  if (!visible.length) {
+    body = '<div class="empty"><div class="big">' + (kind === 'news' ? '📰' : '✍') + '</div>' +
+      '<div>' + (filter === 'archived' ? '削除済みの' + label + 'はありません' : label + 'がまだありません') + '</div>' +
+      (filter !== 'archived' ? '<div style="margin-top:16px;"><button class="btn btn-primary" onclick="openEditor(\'' + kind + '\')">＋ 新規追加</button></div>' : '') +
+      '</div>';
+  } else {
+    body = '<div class="card" style="padding:0;"><table><thead><tr>' +
+      '<th style="width:90px;">状態</th><th>タイトル</th><th style="width:110px;">カテゴリ</th>' +
+      '<th style="width:130px;">公開日時</th><th style="width:220px;"></th></tr></thead><tbody>' +
+      visible.map(function (r) { return rowHtml_(kind, r); }).join('') +
+      '</tbody></table></div>';
+  }
+
+  document.getElementById('view-' + kind).innerHTML =
+    '<div class="page-head"><div><div class="page-title">' + label + '</div>' +
+    '<div class="page-desc">' + (kind === 'news'
+      ? '短い告知を管理します。「公開中」のものだけがホームページに表示されます。'
+      : 'ブログ・施工事例などの読み物を管理します。「公開中」のものだけがホームページに表示されます。') + '</div></div>' +
+    '<button class="btn btn-primary" onclick="openEditor(\'' + kind + '\')">＋ 新規追加</button></div>' +
+    '<div class="tabs">' + tabs + '</div>' + body;
+}
+function rowHtml_(kind, r) {
+  var id = r[ID_KEY[kind]];
+  var pin = (kind === 'news' && r.is_pinned === true) ? ' 📌' : '';
+  var star = (kind === 'article' && r.is_featured === true) ? ' ⭐' : '';
+  var sub = (kind === 'article') ? '<div class="t-sub">/' + esc(r.slug) + '</div>' : '';
+  var actions;
+  if (r.status === 'archived') {
+    actions = '<button class="btn btn-sm" onclick="setStatus(\'' + kind + '\',\'' + esc(id) + '\',\'draft\')">復元</button>';
+  } else {
+    actions =
+      (r.status === 'published'
+        ? '<button class="btn btn-sm" onclick="setStatus(\'' + kind + '\',\'' + esc(id) + '\',\'draft\')">非公開にする</button>'
+        : '<button class="btn btn-sm btn-primary" onclick="setStatus(\'' + kind + '\',\'' + esc(id) + '\',\'published\')">公開する</button>') +
+      ' <button class="btn btn-sm btn-ghost" onclick="openEditor(\'' + kind + '\',\'' + esc(id) + '\')">編集</button>' +
+      '<button class="btn btn-sm btn-danger-ghost" onclick="removeItem(\'' + kind + '\',\'' + esc(id) + '\')">削除</button>';
+  }
+  return '<tr>' +
+    '<td>' + statusBadge(r.status) + '</td>' +
+    '<td><div class="t-title" onclick="openEditor(\'' + kind + '\',\'' + esc(id) + '\')">' + esc(r.title) + pin + star + '</div>' + sub + '</td>' +
+    '<td>' + esc(r.category || '—') + '</td>' +
+    '<td class="t-date">' + esc(fmtDate(r.published_at)) + '</td>' +
+    '<td class="t-actions">' + actions + '</td></tr>';
+}
+function setFilter(kind, f) {
+  state.filter[kind] = f;
+  renderList(kind);
+}
+function setStatus(kind, id, status) {
+  var view = document.getElementById('view-' + kind);
+  view.classList.add('busy');
+  call('apiSetStatus', kind, id, status).then(function (rows) {
+    state[kind] = rows;
+    renderList(kind);
+    toast({ published: '公開しました', draft: status === 'draft' ? '非公開（下書き）にしました' : '', archived: '削除しました' }[status] || '更新しました');
+  }).catch(function (e) {
+    toast(e.message || '更新に失敗しました', true);
+  }).finally(function () { view.classList.remove('busy'); });
+}
+function removeItem(kind, id) {
+  if (!confirm('この' + KIND_LABEL[kind] + 'を削除しますか？\n（「削除済み」タブからいつでも復元できます）')) return;
+  setStatus(kind, id, 'archived');
+}
+
+/* ==================== 編集モーダル（お知らせ / 記事） ==================== */
+function fieldHtml_(f, val) {
+  if (f.type === 'checkbox') {
+    return '<div class="check-field' + (f.wide ? ' wide' : '') + '">' +
+      '<input type="checkbox" id="fld-' + f.key + '" name="' + f.key + '"' + (val === true ? ' checked' : '') + '>' +
+      '<label for="fld-' + f.key + '">' + esc(f.label) + '</label></div>';
+  }
+  var h = '<div class="field' + (f.wide ? ' wide' : '') + '"><label>' + esc(f.label) + (f.req ? '<span class="req">*</span>' : '') + '</label>';
+  if (f.type === 'textarea') {
+    h += '<textarea name="' + f.key + '" class="' + (f.tall ? 'tall' : '') + '" placeholder="' + esc(f.ph || '') + '">' + esc(val) + '</textarea>';
+  } else if (f.type === 'select') {
+    h += '<select name="' + f.key + '">' + f.options.map(function (o) {
+      return '<option value="' + esc(o) + '"' + (val === o ? ' selected' : '') + '>' + esc(o) + '</option>';
+    }).join('') + '</select>';
+  } else if (f.type === 'datetime') {
+    h += '<input type="datetime-local" name="' + f.key + '" value="' + esc(toLocalInput(val) || nowLocalInput()) + '">';
+  } else {
+    h += '<input type="text" name="' + f.key + '" value="' + esc(val) + '" placeholder="' + esc(f.ph || '') + '">';
+  }
+  if (f.hint) h += '<span class="hint">' + esc(f.hint) + '</span>';
+  return h + '</div>';
+}
+function editorFields_(kind) {
+  if (kind === 'news') return [
+    { key: 'title', label: 'タイトル', req: true, wide: true },
+    { key: 'category', label: 'カテゴリ', type: 'select', options: CATEGORY.news },
+    { key: 'published_at', label: '公開日時', type: 'datetime', hint: 'この日時以降にホームページへ表示されます' },
+    { key: 'body', label: '本文', type: 'textarea', wide: true, ph: '短い告知文。空欄でもOK' },
+    { key: 'link_url', label: '詳細リンク先URL', ph: 'https://…' },
+    { key: 'image_url', label: '画像URL', ph: 'https://…' },
+    { key: 'is_pinned', label: '📌 一覧の先頭に固定する', type: 'checkbox', wide: true }
+  ];
+  return [
+    { key: 'title', label: 'タイトル', req: true, wide: true },
+    { key: 'slug', label: 'スラッグ（URL用）', req: true, ph: 'first-case-study', hint: '英小文字・数字・ハイフンのみ。公開後は変えない' },
+    { key: 'category', label: 'カテゴリ', type: 'select', options: CATEGORY.article },
+    { key: 'summary', label: '概要・抜粋', type: 'textarea', wide: true, ph: '一覧カードに表示される短い説明' },
+    { key: 'body', label: '本文（Markdown）', req: true, type: 'textarea', tall: true, wide: true, ph: '# 見出し\n\n本文はMarkdownで書けます。' },
+    { key: 'tags', label: 'タグ', ph: '外壁,リフォーム', hint: 'カンマ区切り' },
+    { key: 'author_name', label: '執筆者名' },
+    { key: 'thumbnail_url', label: 'サムネイル画像URL', ph: 'https://…' },
+    { key: 'published_at', label: '公開日時', type: 'datetime' },
+    { key: 'is_featured', label: '⭐ 注目記事にする', type: 'checkbox', wide: true }
+  ];
+}
+function openEditor(kind, id) {
+  var item = id ? state[kind].filter(function (r) { return r[ID_KEY[kind]] === id; })[0] : null;
+  var fields = editorFields_(kind);
+  var modal = $('#modal');
+  modal.className = (kind === 'article') ? 'lg' : '';
+  modal.innerHTML =
+    '<div class="modal-head"><div class="modal-title">' +
+    (item ? KIND_LABEL[kind] + 'を編集' : KIND_LABEL[kind] + 'を新規追加') +
+    (item ? ' <span style="font-size:12px;color:var(--text-faint);font-weight:400;">' + esc(id) + '</span>' : '') +
+    '</div><button class="btn btn-ghost" onclick="closeModal()">✕</button></div>' +
+    '<form id="editor-form"><div class="form-grid">' +
+    fields.map(function (f) { return fieldHtml_(f, item ? item[f.key] : (f.type === 'select' ? '' : '')); }).join('') +
+    '</div></form>' +
+    '<div class="modal-foot">' +
+    '<button class="btn" onclick="closeModal()">キャンセル</button>' +
+    '<button class="btn btn-primary" id="btn-save-item" onclick="saveEditor(\'' + kind + '\',\'' + esc(id || '') + '\')">保存</button>' +
+    '</div>';
+  $('#modal-overlay').classList.add('open');
+}
+function closeModal() {
+  $('#modal-overlay').classList.remove('open');
+}
+$('#modal-overlay').addEventListener('click', function (e) {
+  if (e.target === this) closeModal();
+});
+function saveEditor(kind, id) {
+  var form = $('#editor-form');
+  var input = {};
+  if (id) input[ID_KEY[kind]] = id;
+  editorFields_(kind).forEach(function (f) {
+    var el = form.elements[f.key];
+    if (f.type === 'checkbox') input[f.key] = el.checked;
+    else if (f.type === 'datetime') input[f.key] = fromLocalInput(el.value || nowLocalInput());
+    else input[f.key] = el.value.trim();
+  });
+  if (!input.title) { toast('タイトルは必須です', true); return; }
+  if (kind === 'article') {
+    if (!input.slug) { toast('スラッグは必須です', true); return; }
+    if (!/^[a-z0-9-]+$/.test(input.slug)) { toast('スラッグは英小文字・数字・ハイフンのみ使えます', true); return; }
+    if (!input.body) { toast('本文は必須です', true); return; }
+  }
+  var btn = $('#btn-save-item');
+  btn.disabled = true; btn.textContent = '保存中…';
+  call('apiSaveItem', kind, input).then(function (rows) {
+    state[kind] = rows;
+    closeModal();
+    renderList(kind);
+    if (state.currentView === 'dashboard') renderDashboard();
+    toast(id ? '保存しました' : KIND_LABEL[kind] + 'を追加しました（下書き）');
+  }).catch(function (e) {
+    toast(e.message || '保存に失敗しました', true);
+    btn.disabled = false; btn.textContent = '保存';
+  });
+}
+
+/* ==================== お問い合わせ ==================== */
+function inqBadgeHtml(st) {
+  var cls = { '未対応': 'archived', '対応中': 'draft', '対応済': 'published' }[st] || 'draft';
+  return '<span class="badge ' + cls + '">' + esc(st || '未対応') + '</span>';
+}
+function renderInquiry() {
+  var rows = state.inquiry.slice().sort(function (a, b) {
+    return String(b.created_at).localeCompare(String(a.created_at));
+  });
+  var pending = rows.filter(function (r) { return r.status === '未対応'; }).length;
+  var body;
+  if (!rows.length) {
+    body = '<div class="empty"><div class="big">📥</div><div>お問い合わせはまだありません</div>' +
+      '<div style="margin-top:8px;font-size:12px;color:var(--text-faint);">ホームページのフォームから送信されると、ここに届きます</div></div>';
+  } else {
+    body = '<div class="card" style="padding:0;"><table><thead><tr>' +
+      '<th style="width:120px;">受信日時</th><th style="width:90px;">状態</th><th>お名前 / メッセージ</th>' +
+      '<th style="width:150px;">ご相談内容</th><th style="width:200px;"></th></tr></thead><tbody>' +
+      rows.map(function (r) {
+        var id = esc(r.inquiry_id);
+        return '<tr>' +
+          '<td class="t-date">' + esc(fmtDate(r.created_at)) + '</td>' +
+          '<td>' + inqBadgeHtml(r.status) + '</td>' +
+          '<td><div class="t-title" onclick="openInquiry(\'' + id + '\')">' + esc(r.name) +
+            (r.company ? ' <span style="font-weight:400;color:var(--text-faint);">（' + esc(r.company) + '）</span>' : '') + '</div>' +
+            '<div class="inq-msg">' + esc(r.message || '') + '</div></td>' +
+          '<td style="font-size:12.5px;color:var(--text-sub);">' + esc(r.topic || '—') + '</td>' +
+          '<td class="t-actions">' +
+            '<select class="inq-select" onchange="setInquiryStatus(\'' + id + '\', this.value)">' +
+            STATUS_INQUIRY.map(function (s) {
+              return '<option value="' + s + '"' + (r.status === s ? ' selected' : '') + '>' + s + '</option>';
+            }).join('') + '</select>' +
+            ' <button class="btn btn-sm btn-ghost" onclick="openInquiry(\'' + id + '\')">詳細</button>' +
+          '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+  $('#view-inquiry').innerHTML =
+    '<div class="page-head"><div><div class="page-title">お問い合わせ</div>' +
+    '<div class="page-desc">ホームページのフォームから届いた問い合わせです。未対応: <b>' + pending + '件</b></div></div>' +
+    '<button class="btn" onclick="loadAll(true)">🔄 更新</button></div>' + body;
+}
+function openInquiry(id) {
+  var r = state.inquiry.filter(function (x) { return x.inquiry_id === id; })[0];
+  if (!r) return;
+  var modal = $('#modal');
+  modal.className = '';
+  modal.innerHTML =
+    '<div class="modal-head"><div class="modal-title">お問い合わせ詳細 <span style="font-size:12px;color:var(--text-faint);font-weight:400;">' + esc(id) + '</span></div>' +
+    '<button class="btn btn-ghost" onclick="closeModal()">✕</button></div>' +
+    '<table><tbody>' +
+    '<tr><td style="width:130px;color:var(--text-sub);">受信日時</td><td>' + esc(fmtDate(r.created_at)) + '</td></tr>' +
+    '<tr><td style="color:var(--text-sub);">状態</td><td>' + inqBadgeHtml(r.status) + '</td></tr>' +
+    '<tr><td style="color:var(--text-sub);">お名前</td><td>' + esc(r.name) + '</td></tr>' +
+    '<tr><td style="color:var(--text-sub);">会社名</td><td>' + esc(r.company || '—') + '</td></tr>' +
+    '<tr><td style="color:var(--text-sub);">メール</td><td><a href="mailto:' + esc(r.email) + '" style="color:var(--accent);">' + esc(r.email) + '</a></td></tr>' +
+    '<tr><td style="color:var(--text-sub);">ご相談内容</td><td>' + esc(r.topic || '—') + '</td></tr>' +
+    '</tbody></table>' +
+    '<div style="margin-top:16px;padding:16px;background:var(--bg-sub);border-radius:8px;line-height:1.9;white-space:pre-wrap;">' + esc(r.message || '（メッセージなし）') + '</div>' +
+    '<div class="modal-foot">' +
+    '<a class="btn btn-primary" href="mailto:' + esc(r.email) + '?subject=' + encodeURIComponent('お問い合わせありがとうございます') + '">✉ メールで返信</a>' +
+    '<button class="btn" onclick="closeModal()">閉じる</button></div>';
+  $('#modal-overlay').classList.add('open');
+}
+function setInquiryStatus(id, status) {
+  call('apiSetStatus', 'inquiry', id, status).then(function (rows) {
+    state.inquiry = rows;
+    renderInquiry();
+    updateInquiryBadge();
+    toast('状態を「' + status + '」にしました');
+  }).catch(function (e) {
+    toast(e.message || '更新に失敗しました', true);
+    renderInquiry();
+  });
+}
+
+/* ==================== 設定 ==================== */
+function renderSettings() {
+  var n = counts('news'), a = counts('article');
+  $('#view-settings').innerHTML =
+    '<div class="page-head"><div><div class="page-title">設定</div>' +
+    '<div class="page-desc">システム情報と運用ルールです。</div></div></div>' +
+    '<div class="card"><div class="card-title">システム情報</div>' +
+    '<table><tbody>' +
+    '<tr><td style="width:180px;color:var(--text-sub);">バージョン</td><td>Equal Web ' + esc(state.version) + '</td></tr>' +
+    '<tr><td style="color:var(--text-sub);">データベース</td><td>' + esc(state.spreadsheetName) + '</td></tr>' +
+    '<tr><td style="color:var(--text-sub);">会社ID</td><td>' + esc(state.company ? state.company.company_id : '未登録') + '</td></tr>' +
+    '<tr><td style="color:var(--text-sub);">登録データ</td><td>お知らせ ' + n.total + '件 ／ 記事 ' + a.total + '件</td></tr>' +
+    '</tbody></table></div>' +
+    '<div class="card"><div class="card-title">運用ルール</div>' +
+    '<div style="line-height:2;color:var(--text-sub);">' +
+    '・データの編集は必ずこの管理画面から行ってください（スプレッドシートの直接編集は非推奨です）。<br>' +
+    '・「削除」はゴミ箱方式です。削除済みタブからいつでも復元できます。<br>' +
+    '・ホームページには「公開中」かつ公開日時を過ぎたものだけが表示されます（次のステップで連携予定）。' +
+    '</div></div>' +
+    '<div class="card"><div class="card-title">データ</div>' +
+    '<button class="btn" id="btn-reload">🔄 最新データを再読込</button>' +
+    '<span style="margin-left:12px;color:var(--text-faint);font-size:12px;">他の人が編集した内容を取り込みます</span></div>';
+  $('#btn-reload').addEventListener('click', function () { loadAll(true); });
+}
+
+/* ==================== 初期ロード ==================== */
+function loadAll(isReload) {
+  if (isReload) $('#main').classList.add('busy');
+  call('apiGetAll').then(function (d) {
+    state.version = d.version;
+    state.spreadsheetName = d.spreadsheetName;
+    state.spreadsheetUrl = d.spreadsheetUrl;
+    state.company = d.company;
+    state.news = d.news || [];
+    state.article = d.article || [];
+    state.inquiry = d.inquiry || [];
+    state.sitesettings = d.sitesettings || [];
+    $('#foot-version').textContent = 'Equal Web ' + d.version;
+    $('#loader').style.display = 'none';
+    render(state.currentView);
+    if (isReload) toast('最新データを読み込みました');
+  }).catch(function (e) {
+    $('#loader').innerHTML = '<div style="color:var(--danger);">読み込みに失敗しました</div>' +
+      '<div style="color:var(--text-sub);font-size:12px;max-width:400px;text-align:center;line-height:1.8;">' + esc(e.message || '') +
+      '<br>スプレッドシート側で initialSetup が実行済みか確認してください。</div>' +
+      '<button class="btn" onclick="location.reload()">再読み込み</button>';
+  }).finally(function () {
+    $('#main').classList.remove('busy');
+  });
+}
+loadAll();
+</script>
+</body>
+</html>

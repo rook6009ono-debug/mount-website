@@ -1,0 +1,175 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>お問い合わせ｜株式会社マウント</title>
+<meta name="description" content="株式会社マウントへのお問い合わせ。改修工事のご依頼・ご相談・お見積りはこちらのフォームからお気軽にどうぞ。TEL 042-569-6960">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='9' fill='%2312161c'/%3E%3Cpath d='M28 8 L45 40 L14 40 Z' fill='%23ffffff'/%3E%3Cpath d='M5 40 L12 27 L16 34 L20 27 L27 40 Z' fill='%23f08300'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header solid">
+  <div class="inner">
+    <a class="brand" href="index.html">
+      <svg class="mk" viewBox="0 0 48 48" aria-hidden="true">
+        <path d="M28 6 L47 42 L12 42 Z" fill="#ffffff"/>
+        <path d="M2 42 L10 26 L15 35 L20 26 L28 42 Z" fill="#f08300"/>
+      </svg>
+      <span class="tx"><span class="en">MOUNT</span><span class="jp">株式会社マウント</span></span>
+    </a>
+    <button class="nav-tgl" aria-label="メニュー"><span></span><span></span><span></span></button>
+    <nav class="gnav">
+      <a class="nv" href="index.html">ホーム</a>
+      <a class="nv" href="about.html">マウントについて</a>
+      <a class="nv" href="renovation.html">リノベーション工事</a>
+      <a class="nv" href="electric.html">電気事業</a>
+      <a class="nv" href="staff.html">スタッフ紹介</a>
+      <a class="nv" href="recruit.html">採用情報</a>
+      <a class="nv-cta cur" href="contact.html">お問い合わせ <span class="ar">→</span></a>
+    </nav>
+  </div>
+</header>
+
+<div class="page-hero">
+  <div class="bgimg"><img src="img/contact-hero.jpg" alt=""></div>
+  <svg class="peaks" viewBox="0 0 1440 320" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 320 L260 120 L430 250 L640 70 L840 240 L1050 120 L1250 230 L1440 150 L1440 320 Z" fill="rgba(255,255,255,.045)"/>
+    <path d="M0 320 L200 210 L420 295 L700 160 L950 285 L1180 195 L1440 295 L1440 320 Z" fill="rgba(240,131,0,.12)"/>
+  </svg>
+  <div class="wrap">
+    <h1 class="en">Contact</h1>
+    <p class="jp">お問い合わせ</p>
+    <p class="bc"><a href="index.html">HOME</a> ─ お問い合わせ</p>
+  </div>
+</div>
+
+<section class="bg-paper">
+  <div class="wrap-n">
+    <p class="sec-lead center rv" style="margin-top:0">
+      改修工事のご依頼・ご相談・お見積り、採用へのご応募はこちらから。<br>
+      以下のフォームをご記入いただき、内容をご確認の上、送信ボタンを押してください。
+    </p>
+
+    <div class="thanks" id="thanks">
+      <div class="ic">✅</div>
+      <h3>送信が完了しました</h3>
+      <p>お問い合わせありがとうございます。<br>内容を確認のうえ、担当者よりご連絡させていただきます。</p>
+      <p style="margin-top:24px"><a class="btn" href="index.html">トップページへ戻る <span class="ar">→</span></a></p>
+    </div>
+
+    <form class="form-card rv rv-d1" id="cform" novalidate="">
+      <div class="f-row">
+        <label class="lbl" for="cf-company"><span class="tag-opt">任意</span>会社名（Company Name）</label>
+        <input type="text" id="cf-company" autocomplete="organization" placeholder="例）株式会社◯◯">
+      </div>
+      <div class="f-row">
+        <label class="lbl" for="cf-name"><span class="tag-req">必須</span>お名前（Your Name）</label>
+        <input type="text" id="cf-name" required autocomplete="name" placeholder="例）山田 太郎">
+      </div>
+      <div class="f-row">
+        <label class="lbl" for="cf-email"><span class="tag-req">必須</span>メールアドレス（Mail Address）</label>
+        <input type="email" id="cf-email" required autocomplete="email" placeholder="例）info@example.com">
+      </div>
+      <div class="f-row">
+        <label class="lbl" for="cf-tel"><span class="tag-opt">任意</span>電話番号（Phone Number）</label>
+        <input type="tel" id="cf-tel" autocomplete="tel" placeholder="例）042-000-0000">
+      </div>
+      <div class="f-row">
+        <span class="lbl"><span class="tag-opt">任意</span>返信方法のご希望（Response）</span>
+        <div class="f-radio">
+          <label><input type="radio" name="reply" value="電話での返信を希望">電話での返信を希望</label>
+          <label><input type="radio" name="reply" value="メールでの返信を希望" checked>メールでの返信を希望</label>
+          <label><input type="radio" name="reply" value="返信不要">返信不要</label>
+        </div>
+      </div>
+      <div class="f-row">
+        <label class="lbl" for="cf-message"><span class="tag-req">必須</span>お問い合わせの内容（Mail Contents）</label>
+        <textarea id="cf-message" required placeholder="ご相談・ご依頼の内容をご記入ください"></textarea>
+        <p class="f-note">採用へのご応募の場合は、ご希望の職種（現場代理人／現場作業員／営業／事務・経理）をご記入ください。</p>
+      </div>
+      <!-- ハニーポット（スパム対策・人間には見えない） -->
+      <div class="hp-trap" aria-hidden="true">
+        <label for="cf-website">Website</label>
+        <input type="text" id="cf-website" tabindex="-1" autocomplete="off">
+      </div>
+      <div class="f-submit">
+        <button class="btn orange" id="cf-submit" type="submit">送信する <span class="ar">→</span></button>
+      </div>
+    </form>
+
+    <div class="contact-info rv rv-d2">
+      <div class="ci">
+        <div class="en">TEL</div>
+        <div class="big" data-ew="tel">042-569-6960</div>
+        <p>受付時間 平日 9:00〜17:00</p>
+      </div>
+      <div class="ci">
+        <div class="en">FAX</div>
+        <div class="big" data-ew="fax">042-569-6961</div>
+        <p>24時間受付</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <a class="brand" href="index.html">
+          <svg class="mk" viewBox="0 0 48 48" aria-hidden="true">
+            <path d="M28 6 L47 42 L12 42 Z" fill="#ffffff"/>
+            <path d="M2 42 L10 26 L15 35 L20 26 L28 42 Z" fill="#f08300"/>
+          </svg>
+          <span class="tx"><span class="en">MOUNT</span><span class="jp">株式会社マウント</span></span>
+        </a>
+        <p class="addr">
+          <span data-ew="hq_address">〒190-0034 東京都立川市西砂町2-51-10 2F</span><br>
+          <span class="tel">TEL <span data-ew="tel">042-569-6960</span></span><br>
+          FAX <span data-ew="fax">042-569-6961</span>
+        </p>
+        <div class="sns">
+          <a href="https://www.facebook.com/mount.tachikawa/" data-ew-href="facebook_url" target="_blank" rel="noopener" aria-label="Facebook">f</a>
+          <a href="https://www.instagram.com/mount_tachikawa/" data-ew-href="instagram_url" target="_blank" rel="noopener" aria-label="Instagram">◎</a>
+        </div>
+      </div>
+      <div>
+        <h4>SITEMAP</h4>
+        <ul class="fnav">
+          <li><a href="index.html">ホーム</a></li>
+          <li><a href="about.html">マウントについて</a></li>
+          <li><a href="renovation.html">リノベーション工事</a></li>
+          <li><a href="electric.html">電気事業</a></li>
+          <li><a href="staff.html">スタッフ紹介</a></li>
+          <li><a href="recruit.html">採用情報</a></li>
+          <li><a href="contact.html">お問い合わせ</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>FOR PARTNERS</h4>
+        <ul class="fnav">
+          <li><a href="https://docs.google.com/forms/d/e/1FAIpQLSc3J59WUvbpcq5ydi7C957LRh5U_govXVVXySkRaILS35UmMQ/viewform" target="_blank" rel="noopener">新規事業者様登録</a></li>
+          <li><a href="https://mount-inc.com/invoice/taxation.html" target="_blank" rel="noopener">課税事業者様用請求書</a></li>
+          <li><a href="https://mount-inc.com/invoice/taxfree.html" target="_blank" rel="noopener">免税事業者様用請求書</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="cpy">
+      <span>地球環境への取り組み、修繕そして次世代へ</span>
+      <span>© MOUNT INC. All Rights Reserved.</span>
+    </div>
+  </div>
+</footer>
+
+<a class="pagetop" href="#" aria-label="ページ上部へ">↑</a>
+
+<script src="js/main.js"></script>
+<script src="equalweb-config.js"></script>
+<script src="js/equalweb.js"></script>
+</body>
+</html>
