@@ -119,6 +119,19 @@ var SHEET_DEFS = {
       ['created_at', '登録日時（自動・編集しない）', 140],
       ['updated_at', '更新日時（自動・編集しない）', 140]
     ]
+  },
+  recruit_settings: {
+    idPrefix: 'REC',
+    columns: [
+      ['recruit_id', '主キー。REC-0001形式（自動採番・編集しない）', 100],
+      ['company_id', '会社ID（company_masterのcompany_id）', 100],
+      ['label', '項目名（例: 給与形態）※必須', 160],
+      ['value', '内容（改行可）。募集要項表に表示', 380],
+      ['display_order', '表示順（小さいほど上。10,20,30…）', 90],
+      ['status', 'active=表示 / archived=論理削除', 90],
+      ['created_at', '登録日時（自動・編集しない）', 140],
+      ['updated_at', '更新日時（自動・編集しない）', 140]
+    ]
   }
 };
 
@@ -193,7 +206,7 @@ function buildSheet_(ss, name, def) {
     // プルダウン（入力規則）
     var list = null;
     if (colName === 'status') {
-      list = (name === 'company_master' || name === 'site_settings') ? STATUS_COMPANY
+      list = (name === 'company_master' || name === 'site_settings' || name === 'recruit_settings') ? STATUS_COMPANY
            : (name === 'inquiry_log') ? STATUS_INQUIRY
            : STATUS_CONTENT;
     } else if (colName === 'category') {
@@ -369,13 +382,14 @@ function appendRowByHeader_(sheet, obj) {
 // お客様はスプレッドシートを開かず、必ずこの管理画面から編集する。
 // ============================================================
 
-var APP_VERSION = 'v3.3';
+var APP_VERSION = 'v3.4';
 
 var KIND_DEF = {
-  news:        { sheet: 'news_master',    idKey: 'news_id',    prefix: 'NEWS' },
-  article:     { sheet: 'article_master', idKey: 'article_id', prefix: 'ART' },
-  inquiry:     { sheet: 'inquiry_log',    idKey: 'inquiry_id', prefix: 'INQ' },
-  sitesetting: { sheet: 'site_settings',  idKey: 'setting_id', prefix: 'SET' }
+  news:           { sheet: 'news_master',      idKey: 'news_id',    prefix: 'NEWS' },
+  article:        { sheet: 'article_master',   idKey: 'article_id', prefix: 'ART' },
+  inquiry:        { sheet: 'inquiry_log',      idKey: 'inquiry_id', prefix: 'INQ' },
+  sitesetting:    { sheet: 'site_settings',    idKey: 'setting_id', prefix: 'SET' },
+  recruitsetting: { sheet: 'recruit_settings', idKey: 'recruit_id', prefix: 'REC' }
 };
 
 function doGet(e) {
@@ -411,7 +425,8 @@ function apiGetAll() {
     news: apiList('news'),
     article: apiList('article'),
     inquiry: safeList_('inquiry'),
-    sitesettings: safeList_('sitesetting')
+    sitesettings: safeList_('sitesetting'),
+    recruitsettings: safeList_('recruitsetting')
   };
 }
 
@@ -473,10 +488,17 @@ function apiList(kind) {
   return readRows_(def.sheet).rows;
 }
 
-// 会社概要 追加項目（site_settings）の一括保存。
-// list = [{setting_id?, label, value}, ...]（配列の順番がそのまま表示順になる）
+// 会社概要 追加項目（site_settings）の一括保存
+function apiSaveSettings(list) { return saveKVList_('sitesetting', list); }
+
+// 募集要項（recruit_settings）の一括保存
+function apiSaveRecruit(list) { return saveKVList_('recruitsetting', list); }
+
+// ラベル+値リストの一括保存（共通処理）。
+// list = [{<idKey>?, label, value}, ...]（配列の順番がそのまま表示順になる）
 // listに含まれない既存行は archived にする（ゴミ箱方式）。戻り値は最新一覧。
-function apiSaveSettings(list) {
+function saveKVList_(kind, list) {
+  var def = kindDef_(kind);
   if (!Array.isArray(list)) throw new Error('保存データの形式が不正です');
   list.forEach(function (item) {
     if (!String(item.label || '').trim()) throw new Error('項目名が空の行があります');
@@ -484,33 +506,32 @@ function apiSaveSettings(list) {
   var lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
-    var data = readRows_('site_settings');
+    var data = readRows_(def.sheet);
     var sheet = data.sheet, headers = data.headers;
     var now = nowString_();
     var keepIds = {};
 
     list.forEach(function (item, i) {
       var order = (i + 1) * 10;
-      var target = item.setting_id
-        ? data.rows.filter(function (r) { return r.setting_id === item.setting_id; })[0]
+      var target = item[def.idKey]
+        ? data.rows.filter(function (r) { return r[def.idKey] === item[def.idKey]; })[0]
         : null;
       if (target) {
-        keepIds[target.setting_id] = true;
+        keepIds[target[def.idKey]] = true;
         var merged = mergeRow_(headers, target, {
           label: String(item.label).trim(),
           value: item.value == null ? '' : String(item.value),
           display_order: order,
           status: 'active'
         });
-        merged.setting_id = target.setting_id;
+        merged[def.idKey] = target[def.idKey];
         merged.created_at = target.created_at;
         merged.updated_at = now;
         writeRow_(sheet, headers, target._row, merged);
       } else {
-        var id = nextId_(sheet, 'SET');
+        var id = nextId_(sheet, def.prefix);
         keepIds[id] = true;
-        appendRowByHeader_(sheet, {
-          setting_id: id,
+        var fresh = {
           company_id: defaultCompanyId_(),
           label: String(item.label).trim(),
           value: item.value == null ? '' : String(item.value),
@@ -518,24 +539,26 @@ function apiSaveSettings(list) {
           status: 'active',
           created_at: now,
           updated_at: now
-        });
+        };
+        fresh[def.idKey] = id;
+        appendRowByHeader_(sheet, fresh);
         // appendでdata.rowsが古くなるため、次のnextId_のために再読込
-        data = readRows_('site_settings');
+        data = readRows_(def.sheet);
         sheet = data.sheet; headers = data.headers;
       }
     });
 
     // リストに無い既存activeは削除（archived）
-    data = readRows_('site_settings');
+    data = readRows_(def.sheet);
     data.rows.forEach(function (r) {
-      if (r.status !== 'archived' && !keepIds[r.setting_id]) {
+      if (r.status !== 'archived' && !keepIds[r[def.idKey]]) {
         var merged = mergeRow_(headers, r, { status: 'archived' });
         merged.updated_at = now;
         writeRow_(data.sheet, data.headers, r._row, merged);
       }
     });
 
-    return apiList('sitesetting');
+    return apiList(kind);
   } finally {
     lock.releaseLock();
   }
@@ -708,7 +731,8 @@ function publicApi_(p) {
       company: pickCompany_(apiGetCompany()),
       news: news,
       articles: articles,
-      settings: publicSettings_(),
+      settings: publicKV_('sitesetting'),
+      recruit: publicKV_('recruitsetting'),
       generated_at: now
     };
   }
@@ -717,14 +741,14 @@ function publicApi_(p) {
 }
 
 // 公開してよい項目だけに絞る（内部管理用の列は出さない）
-// 会社概要 追加項目（active のみ、表示順ソート）
-function publicSettings_() {
+// ラベル+値リストの公開データ（active のみ、表示順ソート）
+function publicKV_(kind) {
   try {
-    return apiList('sitesetting')
+    return apiList(kind)
       .filter(function (r) { return r.status === 'active'; })
       .sort(function (a, b) { return (Number(a.display_order) || 0) - (Number(b.display_order) || 0); })
       .map(function (r) { return { label: r.label, value: r.value == null ? '' : String(r.value) }; });
-  } catch (e) { return []; } // site_settingsシート未作成でもAPIを壊さない
+  } catch (e) { return []; } // シート未作成でもAPIを壊さない
 }
 
 function pickCompany_(c) {

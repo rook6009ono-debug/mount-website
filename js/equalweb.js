@@ -37,6 +37,20 @@
       { label: '主要仕入先', value: '化研マテリアル株式会社／城北化研株式会社／シーカ・ジャパン株式会社／野口興産株式会社／株式会社K・Cアスカ／森商事株式会社／荻野化成株式会社／ニチハ株式会社／新明電材株式会社' },
       { label: '所属団体', value: '一般社団法人マンション計画修繕施工協会（MKS）／関東防水管理事業協同組合／ダイフレックス防水工事業協同組合／一般社団法人機能性外壁工業会／ハイブリットルーフ研究会／コニシべステム工業会／SDGsジャパン' }
     ],
+    recruit: [
+      { label: '職務内容', value: '工事管理業務・現場作業・営業・事務作業' },
+      { label: '勤務地', value: '本社・北関東営業所・関東一円' },
+      { label: '資格・経験', value: '現場代理人：1・2級施工管理優遇\n現場作業員：1級防水技能士優遇\n営業：特になし\n事務・経理：簿記取得者優遇' },
+      { label: '応募資格', value: '現場代理人：20歳〜55歳位（未経験可、学歴・経験不問）※施工管理技士資格者優遇。55歳以上でもやる気のある方大歓迎。\n現場作業員：18歳〜55歳（未経験可、学歴・経験不問）※55歳以上でもやる気と体力のある方大歓迎。普通免許があれば尚可。週払い可。\n営業：普通免許があれば尚可。\n事務・経理：普通免許があれば尚可。' },
+      { label: '給与形態', value: '現場代理人：月給 35万円〜 ※施工管理資格者は別途手当金あり\n現場作業員：日当 11,000円〜20,000円 ※経験者は応相談\n営業：月給 23万円〜 ※経験者は相談\n事務・経理：月給 20万円〜 ※パート・アルバイトは時給1,200円〜' },
+      { label: '昇給', value: 'あり（年1回）' },
+      { label: '募集人数', value: '複数名' },
+      { label: '雇用形態', value: '正社員、アルバイト（シフト制可）' },
+      { label: '就業時間', value: '現場代理人・現場作業員：8:30〜17:00\n営業・営業アシスタント・事務・経理：9:00〜18:00\n※パート・アルバイトは状況により応相談' },
+      { label: '休日・休暇', value: '土日、祝日、年末年始、有給休暇、慶弔休暇、育児休暇制度あり、その他応相談' },
+      { label: '諸手当', value: '通勤交通費（上限月2万円）' },
+      { label: '待遇・福利厚生', value: '昇給年1回、賞与業績により（年2回夏・冬）、労災保険、雇用保険、健康保険（土建国保）、厚生年金、通勤手当、時間外手当、資格支援制度（講習及び受験費負担）、社員旅行、保養施設利用可' }
+    ],
     news: [
       { id: 'S1', title: 'ホームページをリニューアルしました', body: 'この度、株式会社マウントのホームページをリニューアルいたしました。\n今後は管理画面から、お知らせや施工情報を随時発信してまいります。', category: 'お知らせ', link_url: '', image_url: '', is_pinned: true, published_at: '2026-07-17 09:00:00' },
       { id: 'S2', title: '夏季休業のお知らせ（8/13〜8/16）', body: '誠に勝手ながら、下記期間を夏季休業とさせていただきます。\n期間中のお問い合わせは、休業明けに順次ご対応いたします。', category: '営業案内', link_url: '', image_url: '', is_pinned: false, published_at: '2026-07-10 10:00:00' },
@@ -111,21 +125,24 @@
     });
   }
 
-  /* ---- 会社概要 追加項目（#ewSettings がある場合のみ） ---- */
-  function renderSettings(list) {
-    var tb = document.getElementById('ewSettings');
+  /* ---- ラベル+値のテーブル描画（会社概要 追加項目 / 募集要項 共通） ---- */
+  function renderKV(tbodyId, list) {
+    var tb = document.getElementById(tbodyId);
     if (!tb || !list || !list.length) return;
     tb.innerHTML = list.map(function (s) {
       var val = String(s.value == null ? '' : s.value).split(/\n/).map(esc).join('<br>');
       return '<tr><th><span>' + esc(s.label) + '</span></th><td>' + val + '</td></tr>';
     }).join('');
   }
+  function renderSettings(list) { renderKV('ewSettings', list); }
+  function renderRecruit(list) { renderKV('ewRecruit', list); }
 
   /* ---- 描画・取得 ---- */
   function render(d, isMock) {
     renderNews(d.news || []);
     fillCompany(d.company);
     renderSettings(d.settings || []);
+    renderRecruit(d.recruit || []);
     var st = document.getElementById('ewStamp');
     if (st) st.textContent = isMock ? '（サンプルデータ表示中 — Equal Web接続前）' : (d.generated_at ? '最終更新 ' + String(d.generated_at).slice(11, 16) : '');
     if (typeof window.reveal === 'function') window.reveal();

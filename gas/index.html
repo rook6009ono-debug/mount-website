@@ -259,6 +259,7 @@ tbody tr:hover { background: var(--bg-sub); }
       <button class="nav-item" data-view="company"><span class="ico">🏢</span><span class="txt">会社情報</span></button>
       <button class="nav-item" data-view="news"><span class="ico">📰</span><span class="txt">お知らせ</span></button>
       <button class="nav-item" data-view="article"><span class="ico">✍</span><span class="txt">記事</span></button>
+      <button class="nav-item" data-view="recruit"><span class="ico">👷</span><span class="txt">採用情報</span></button>
       <button class="nav-item" data-view="inquiry"><span class="ico">📥</span><span class="txt">お問い合わせ</span><span class="nav-badge" id="inqBadge"></span></button>
       <button class="nav-item" data-view="settings"><span class="ico">⚙</span><span class="txt">設定</span></button>
     </nav>
@@ -270,6 +271,7 @@ tbody tr:hover { background: var(--bg-sub); }
     <div class="view" id="view-company"></div>
     <div class="view" id="view-news"></div>
     <div class="view" id="view-article"></div>
+    <div class="view" id="view-recruit"></div>
     <div class="view" id="view-inquiry"></div>
     <div class="view" id="view-settings"></div>
   </main>
@@ -307,31 +309,43 @@ if (typeof google === 'undefined') {
       sitesettings: [
         { setting_id: 'SET-0001', company_id: 'CMP-0001', label: '建設業許可', value: '国土交通大臣 許可（特-0）第00000号（サンプル）', display_order: 10, status: 'active', created_at: '2026-07-17 09:00:00', updated_at: '2026-07-17 09:00:00' },
         { setting_id: 'SET-0002', company_id: 'CMP-0001', label: '所属団体', value: 'サンプル工業会／サンプル協同組合', display_order: 20, status: 'active', created_at: '2026-07-17 09:00:00', updated_at: '2026-07-17 09:00:00' }
+      ],
+      recruitsettings: [
+        { recruit_id: 'REC-0001', company_id: 'CMP-0001', label: '職務内容', value: '現場作業・工事管理（サンプル）', display_order: 10, status: 'active', created_at: '2026-07-17 09:00:00', updated_at: '2026-07-17 09:00:00' },
+        { recruit_id: 'REC-0002', company_id: 'CMP-0001', label: '給与形態', value: '月給 25万円〜（サンプル）', display_order: 20, status: 'active', created_at: '2026-07-17 09:00:00', updated_at: '2026-07-17 09:00:00' }
       ]
     };
+    function mockSaveKV(rows, list, idKey, prefix) {
+      var max = 0;
+      rows.forEach(function (s) {
+        var m = String(s[idKey]).match(new RegExp('^' + prefix + '-(\\d+)$'));
+        if (m) max = Math.max(max, parseInt(m[1], 10));
+      });
+      return list.map(function (item, i) {
+        var id = item[idKey];
+        if (!id) { max++; id = prefix + '-' + String(max).padStart(4, '0'); }
+        var out = {
+          company_id: 'CMP-0001', label: item.label, value: item.value,
+          display_order: (i + 1) * 10, status: 'active',
+          created_at: '2026-07-17 09:00:00', updated_at: '2026-07-17 09:00:00'
+        };
+        out[idKey] = id;
+        return out;
+      });
+    }
     var api = {
       apiGetAll: function () {
-        return { version: 'v3.3 (ローカルプレビュー)', spreadsheetName: 'Equal Web_DB（モック）', spreadsheetUrl: '#',
+        return { version: 'v3.4 (ローカルプレビュー)', spreadsheetName: 'Equal Web_DB（モック）', spreadsheetUrl: '#',
           company: mockDb.company, news: mockDb.news, article: mockDb.article, inquiry: mockDb.inquiry,
-          sitesettings: mockDb.sitesettings };
+          sitesettings: mockDb.sitesettings, recruitsettings: mockDb.recruitsettings };
       },
       apiSaveSettings: function (list) {
-        var max = 0;
-        mockDb.sitesettings.forEach(function (s) {
-          var m = String(s.setting_id).match(/^SET-(\d+)$/);
-          if (m) max = Math.max(max, parseInt(m[1], 10));
-        });
-        mockDb.sitesettings = list.map(function (item, i) {
-          var id = item.setting_id;
-          if (!id) { max++; id = 'SET-' + String(max).padStart(4, '0'); }
-          return {
-            setting_id: id,
-            company_id: 'CMP-0001', label: item.label, value: item.value,
-            display_order: (i + 1) * 10, status: 'active',
-            created_at: '2026-07-17 09:00:00', updated_at: '2026-07-17 09:00:00'
-          };
-        });
+        mockDb.sitesettings = mockSaveKV(mockDb.sitesettings, list, 'setting_id', 'SET');
         return mockDb.sitesettings;
+      },
+      apiSaveRecruit: function (list) {
+        mockDb.recruitsettings = mockSaveKV(mockDb.recruitsettings, list, 'recruit_id', 'REC');
+        return mockDb.recruitsettings;
       },
       apiGetCompany: function () { return mockDb.company; },
       apiSaveCompany: function (input) { Object.assign(mockDb.company, input); return mockDb.company; },
@@ -384,6 +398,7 @@ var state = {
   article: [],
   inquiry: [],
   sitesettings: [],
+  recruitsettings: [],
   filter: { news: 'all', article: 'all' },
   currentView: 'dashboard'
 };
@@ -495,6 +510,7 @@ function render(view) {
   if (view === 'company') renderCompany();
   if (view === 'news') renderList('news');
   if (view === 'article') renderList('article');
+  if (view === 'recruit') renderRecruit();
   if (view === 'inquiry') renderInquiry();
   if (view === 'settings') renderSettings();
   updateInquiryBadge();
@@ -571,43 +587,26 @@ function renderCompany() {
   html += '</form>';
 
   // 会社概要 追加項目（site_settings）
-  var extras = state.sitesettings
-    .filter(function (s) { return s.status !== 'archived'; })
-    .slice().sort(function (a, b) { return (Number(a.display_order) || 0) - (Number(b.display_order) || 0); });
+  var extras = kvActiveSorted_(state.sitesettings);
   html += '<div class="card"><div class="card-title">会社概要 追加項目</div>' +
     '<div style="color:var(--text-sub);font-size:12.5px;margin-bottom:14px;line-height:1.8;">' +
     '建設業許可・保有資格・所属団体・沿革など、基本情報にない項目を自由に追加できます。<br>' +
     'ホームページの会社概要表に、ここの並び順のまま表示されます。</div>' +
-    '<div id="ext-rows">' + extras.map(extRowHtml_).join('') + '</div>' +
+    '<div id="ext-rows">' + extras.map(function (s) { return kvRowHtml_(s, 'setting_id', '項目名（例: 建設業許可）'); }).join('') + '</div>' +
     '<div style="margin-top:16px;display:flex;gap:8px;">' +
     '<button type="button" class="btn" id="btn-add-ext">＋ 項目を追加</button>' +
     '<button type="button" class="btn btn-primary" id="btn-save-ext">追加項目を保存</button></div></div>';
 
   $('#view-company').innerHTML = html;
   $('#btn-save-company').addEventListener('click', saveCompany);
-  $('#btn-add-ext').addEventListener('click', function () {
-    $('#ext-rows').insertAdjacentHTML('beforeend', extRowHtml_({}));
-    var rows = $('#ext-rows').children;
-    rows[rows.length - 1].querySelector('.ext-label').focus();
-  });
+  wireKvEditor_('#ext-rows', '#btn-add-ext', '項目名（例: 建設業許可）');
   $('#btn-save-ext').addEventListener('click', saveSettings);
-  $('#ext-rows').addEventListener('click', function (e) {
-    var btn = e.target.closest('button[data-act]');
-    if (!btn) return;
-    var row = btn.closest('.ext-row');
-    var act = btn.dataset.act;
-    if (act === 'del') {
-      if (row.querySelector('.ext-label').value.trim() === '' &&
-          row.querySelector('.ext-value').value.trim() === '') { row.remove(); return; }
-      if (confirm('この項目を削除しますか？（「追加項目を保存」を押すと確定します）')) row.remove();
-    }
-    if (act === 'up' && row.previousElementSibling) row.parentNode.insertBefore(row, row.previousElementSibling);
-    if (act === 'down' && row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row);
-  });
 }
-function extRowHtml_(s) {
-  return '<div class="ext-row" data-id="' + esc(s.setting_id || '') + '">' +
-    '<input type="text" class="ext-label" placeholder="項目名（例: 建設業許可）" value="' + esc(s.label || '') + '">' +
+
+/* ==================== ラベル+値エディタ（共通部品） ==================== */
+function kvRowHtml_(s, idKey, labelPh) {
+  return '<div class="ext-row" data-id="' + esc(s[idKey] || '') + '">' +
+    '<input type="text" class="ext-label" placeholder="' + esc(labelPh) + '" value="' + esc(s.label || '') + '">' +
     '<textarea class="ext-value" placeholder="内容（改行できます）">' + esc(s.value || '') + '</textarea>' +
     '<div class="ext-btns">' +
     '<button type="button" class="btn btn-ghost btn-sm" data-act="up" title="上へ">↑</button>' +
@@ -615,26 +614,84 @@ function extRowHtml_(s) {
     '<button type="button" class="btn btn-danger-ghost btn-sm" data-act="del" title="削除">✕</button>' +
     '</div></div>';
 }
-function saveSettings() {
-  var list = [];
-  var invalid = false;
-  Array.prototype.forEach.call($('#ext-rows').children, function (row) {
+function kvActiveSorted_(rows) {
+  return rows.filter(function (s) { return s.status !== 'archived'; })
+    .slice().sort(function (a, b) { return (Number(a.display_order) || 0) - (Number(b.display_order) || 0); });
+}
+function wireKvEditor_(rowsSel, addBtnSel, labelPh) {
+  $(addBtnSel).addEventListener('click', function () {
+    $(rowsSel).insertAdjacentHTML('beforeend', kvRowHtml_({}, 'x', labelPh));
+    var rows = $(rowsSel).children;
+    rows[rows.length - 1].querySelector('.ext-label').focus();
+  });
+  $(rowsSel).addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-act]');
+    if (!btn) return;
+    var row = btn.closest('.ext-row');
+    var act = btn.dataset.act;
+    if (act === 'del') {
+      if (row.querySelector('.ext-label').value.trim() === '' &&
+          row.querySelector('.ext-value').value.trim() === '') { row.remove(); return; }
+      if (confirm('この項目を削除しますか？（「保存」を押すと確定します）')) row.remove();
+    }
+    if (act === 'up' && row.previousElementSibling) row.parentNode.insertBefore(row, row.previousElementSibling);
+    if (act === 'down' && row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row);
+  });
+}
+function collectKvRows_(rowsSel, idKey) {
+  var list = [], invalid = false;
+  Array.prototype.forEach.call($(rowsSel).children, function (row) {
     var label = row.querySelector('.ext-label').value.trim();
     var value = row.querySelector('.ext-value').value;
     if (!label && !value.trim()) return; // 完全に空の行は無視
     if (!label) { invalid = true; row.querySelector('.ext-label').focus(); return; }
-    list.push({ setting_id: row.dataset.id || '', label: label, value: value });
+    var item = { label: label, value: value };
+    item[idKey] = row.dataset.id || '';
+    list.push(item);
   });
-  if (invalid) { toast('項目名が空の行があります', true); return; }
+  return { list: list, invalid: invalid };
+}
+function saveSettings() {
+  var r = collectKvRows_('#ext-rows', 'setting_id');
+  if (r.invalid) { toast('項目名が空の行があります', true); return; }
   var btn = $('#btn-save-ext');
   btn.disabled = true; btn.textContent = '保存中…';
-  call('apiSaveSettings', list).then(function (rows) {
+  call('apiSaveSettings', r.list).then(function (rows) {
     state.sitesettings = rows || [];
     renderCompany();
     toast('追加項目を保存しました');
   }).catch(function (e) {
     toast(e.message || '保存に失敗しました', true);
     btn.disabled = false; btn.textContent = '追加項目を保存';
+  });
+}
+
+/* ==================== 採用情報（募集要項） ==================== */
+function renderRecruit() {
+  var rows = kvActiveSorted_(state.recruitsettings);
+  $('#view-recruit').innerHTML =
+    '<div class="page-head"><div><div class="page-title">採用情報</div>' +
+    '<div class="page-desc">ホームページの「募集要項」に表示される内容です。ここの並び順のまま表に表示されます。<br>' +
+    '職種ごとに条件が違う項目は、「現場代理人：〜」のように行を分けて書くと見やすくなります。</div></div>' +
+    '<button class="btn btn-primary" id="btn-save-rec">保存</button></div>' +
+    '<div class="card"><div class="card-title">募集要項</div>' +
+    '<div id="rec-rows">' + rows.map(function (s) { return kvRowHtml_(s, 'recruit_id', '項目名（例: 給与形態）'); }).join('') + '</div>' +
+    '<div style="margin-top:16px;"><button type="button" class="btn" id="btn-add-rec">＋ 項目を追加</button></div></div>';
+  wireKvEditor_('#rec-rows', '#btn-add-rec', '項目名（例: 給与形態）');
+  $('#btn-save-rec').addEventListener('click', saveRecruit);
+}
+function saveRecruit() {
+  var r = collectKvRows_('#rec-rows', 'recruit_id');
+  if (r.invalid) { toast('項目名が空の行があります', true); return; }
+  var btn = $('#btn-save-rec');
+  btn.disabled = true; btn.textContent = '保存中…';
+  call('apiSaveRecruit', r.list).then(function (rows) {
+    state.recruitsettings = rows || [];
+    renderRecruit();
+    toast('募集要項を保存しました');
+  }).catch(function (e) {
+    toast(e.message || '保存に失敗しました', true);
+    btn.disabled = false; btn.textContent = '保存';
   });
 }
 function saveCompany() {
@@ -964,6 +1021,7 @@ function loadAll(isReload) {
     state.article = d.article || [];
     state.inquiry = d.inquiry || [];
     state.sitesettings = d.sitesettings || [];
+    state.recruitsettings = d.recruitsettings || [];
     $('#foot-version').textContent = 'Equal Web ' + d.version;
     $('#loader').style.display = 'none';
     render(state.currentView);
