@@ -54,8 +54,35 @@ function seedMount() {
   }
 
   seedMountRecruit();
+  seedMountPhotos();
 
   Logger.log('マウント初期データの投入が完了しました');
+}
+
+/**
+ * 写真枠の初期登録（v3.5 写真管理機能）。
+ * 再実行しても既存スロットはスキップされる（安全）。
+ * 実行後、管理画面「写真」から各所の写真を差し替えられるようになる。
+ */
+function seedMountPhotos() {
+  apiSeedPhotoSlots([
+    { slot: 'top-about', label: 'トップ：会社紹介の写真（初期＝本社社屋）' },
+    { slot: 'top-renovation', label: 'トップ：リノベーション工事カードの写真' },
+    { slot: 'top-electric', label: 'トップ：電気事業カードの写真' },
+    { slot: 'hero-about', label: 'マウントについて：ページ上部の背景写真' },
+    { slot: 'ceo', label: 'マウントについて：代表挨拶の写真' },
+    { slot: 'hero-renovation', label: 'リノベーション工事：ページ上部の背景写真' },
+    { slot: 'method-pinnet', label: 'リノベーション工事：斜壁ピンネット工法の写真' },
+    { slot: 'method-everguard', label: 'リノベーション工事：エバーガードSG工法の写真' },
+    { slot: 'method-netguard', label: 'リノベーション工事：ネットガードU工法の写真' },
+    { slot: 'method-gondola', label: 'リノベーション工事：ゴンドラ・チェアー工事の写真' },
+    { slot: 'hero-electric', label: '電気事業：ページ上部の背景写真' },
+    { slot: 'electric-work', label: '電気事業：ワンストップ対応の写真' },
+    { slot: 'hero-recruit', label: '採用情報：ページ上部の背景写真' },
+    { slot: 'recruit-message', label: '採用情報：メッセージ横の写真' },
+    { slot: 'hero-contact', label: 'お問い合わせ：ページ上部の背景写真' }
+  ]);
+  Logger.log('写真枠の初期登録が完了しました');
 }
 
 /**

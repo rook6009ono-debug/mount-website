@@ -137,12 +137,26 @@
   function renderSettings(list) { renderKV('ewSettings', list); }
   function renderRecruit(list) { renderKV('ewRecruit', list); }
 
+  /* ---- 写真差し替え（[data-photo] がある場合のみ）----
+     map = {slot: 画像URL}。URLが設定されているスロットだけ差し替え、
+     未設定のスロットはHTMLに書かれた初期写真のまま。 */
+  function applyPhotos(map) {
+    if (!map) return;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-photo]'), function (el) {
+      var url = map[el.getAttribute('data-photo')];
+      if (!url) return;
+      var img = el.tagName === 'IMG' ? el : el.querySelector('img');
+      if (img && img.src !== url) img.src = url;
+    });
+  }
+
   /* ---- 描画・取得 ---- */
   function render(d, isMock) {
     renderNews(d.news || []);
     fillCompany(d.company);
     renderSettings(d.settings || []);
     renderRecruit(d.recruit || []);
+    applyPhotos(d.photos || null);
     var st = document.getElementById('ewStamp');
     if (st) st.textContent = isMock ? '（サンプルデータ表示中 — Equal Web接続前）' : (d.generated_at ? '最終更新 ' + String(d.generated_at).slice(11, 16) : '');
     if (typeof window.reveal === 'function') window.reveal();

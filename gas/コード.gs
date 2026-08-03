@@ -132,6 +132,20 @@ var SHEET_DEFS = {
       ['created_at', '登録日時（自動・編集しない）', 140],
       ['updated_at', '更新日時（自動・編集しない）', 140]
     ]
+  },
+  photo_master: {
+    idPrefix: 'PHT',
+    columns: [
+      ['photo_id', '主キー。PHT-0001形式（自動採番・編集しない）', 100],
+      ['company_id', '会社ID（company_masterのcompany_id）', 100],
+      ['slot', 'HP側の差し込み位置キー（英字。変更しない）', 140],
+      ['label', 'どこの写真か（例: トップ：会社紹介の写真）', 220],
+      ['image_url', '画像URL（空=HP初期写真を表示）', 300],
+      ['display_order', '表示順（管理画面の並び）', 90],
+      ['status', 'active=有効 / archived=論理削除', 90],
+      ['created_at', '登録日時（自動・編集しない）', 140],
+      ['updated_at', '更新日時（自動・編集しない）', 140]
+    ]
   }
 };
 
@@ -206,7 +220,7 @@ function buildSheet_(ss, name, def) {
     // プルダウン（入力規則）
     var list = null;
     if (colName === 'status') {
-      list = (name === 'company_master' || name === 'site_settings' || name === 'recruit_settings') ? STATUS_COMPANY
+      list = (name === 'company_master' || name === 'site_settings' || name === 'recruit_settings' || name === 'photo_master') ? STATUS_COMPANY
            : (name === 'inquiry_log') ? STATUS_INQUIRY
            : STATUS_CONTENT;
     } else if (colName === 'category') {
@@ -382,14 +396,15 @@ function appendRowByHeader_(sheet, obj) {
 // お客様はスプレッドシートを開かず、必ずこの管理画面から編集する。
 // ============================================================
 
-var APP_VERSION = 'v3.4';
+var APP_VERSION = 'v3.5';
 
 var KIND_DEF = {
   news:           { sheet: 'news_master',      idKey: 'news_id',    prefix: 'NEWS' },
   article:        { sheet: 'article_master',   idKey: 'article_id', prefix: 'ART' },
   inquiry:        { sheet: 'inquiry_log',      idKey: 'inquiry_id', prefix: 'INQ' },
   sitesetting:    { sheet: 'site_settings',    idKey: 'setting_id', prefix: 'SET' },
-  recruitsetting: { sheet: 'recruit_settings', idKey: 'recruit_id', prefix: 'REC' }
+  recruitsetting: { sheet: 'recruit_settings', idKey: 'recruit_id', prefix: 'REC' },
+  photo:          { sheet: 'photo_master',     idKey: 'photo_id',   prefix: 'PHT' }
 };
 
 function doGet(e) {
@@ -426,7 +441,8 @@ function apiGetAll() {
     article: apiList('article'),
     inquiry: safeList_('inquiry'),
     sitesettings: safeList_('sitesetting'),
-    recruitsettings: safeList_('recruitsetting')
+    recruitsettings: safeList_('recruitsetting'),
+    photos: safeList_('photo')
   };
 }
 
@@ -493,6 +509,74 @@ function apiSaveSettings(list) { return saveKVList_('sitesetting', list); }
 
 // 募集要項（recruit_settings）の一括保存
 function apiSaveRecruit(list) { return saveKVList_('recruitsetting', list); }
+
+// ==================== 写真管理（photo_master + Google Drive） ====================
+
+// 写真スロットの一括登録（seed用）。既存slotはスキップ。list = [{slot, label}]
+function apiSeedPhotoSlots(list) {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    var data = readRows_('photo_master');
+    var now = nowString_();
+    list.forEach(function (item, i) {
+      var exists = data.rows.some(function (r) { return r.slot === item.slot && r.status !== 'archived'; });
+      if (exists) return;
+      appendRowByHeader_(data.sheet, {
+        photo_id: nextId_(data.sheet, 'PHT'),
+        company_id: defaultCompanyId_(),
+        slot: item.slot,
+        label: item.label,
+        image_url: '',
+        display_order: (i + 1) * 10,
+        status: 'active',
+        created_at: now,
+        updated_at: now
+      });
+      data = readRows_('photo_master');
+    });
+    return apiList('photo');
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// 画像アップロード: base64のdataURLを受け取り、Driveに保存して公開URLを写真行に記録する
+function apiUploadPhoto(photoId, filename, dataUrl) {
+  var m = String(dataUrl || '').match(/^data:(image\/[a-z0-9+.-]+);base64,(.+)$/i);
+  if (!m) throw new Error('画像データの形式が不正です');
+  var bytes = Utilities.base64Decode(m[2]);
+  if (bytes.length > 8 * 1024 * 1024) throw new Error('画像が大きすぎます（8MBまで）');
+  var blob = Utilities.newBlob(bytes, m[1], filename || ('photo-' + photoId));
+  var file = photoFolder_().createFile(blob);
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  var url = 'https://lh3.googleusercontent.com/d/' + file.getId();
+  return apiSetPhotoUrl(photoId, url);
+}
+
+// 画像URLの直接設定（''で初期写真に戻す）。戻り値は最新一覧
+function apiSetPhotoUrl(photoId, url) {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    var data = readRows_('photo_master');
+    var target = data.rows.filter(function (r) { return r.photo_id === photoId; })[0];
+    if (!target) throw new Error('対象の写真枠が見つかりません: ' + photoId);
+    var merged = mergeRow_(data.headers, target, { image_url: String(url || '').trim() });
+    merged.updated_at = nowString_();
+    writeRow_(data.sheet, data.headers, target._row, merged);
+    return apiList('photo');
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// アップロード先のDriveフォルダ（無ければ作成）
+function photoFolder_() {
+  var name = 'Equal Web_写真_' + SpreadsheetApp.getActiveSpreadsheet().getName();
+  var it = DriveApp.getFoldersByName(name);
+  return it.hasNext() ? it.next() : DriveApp.createFolder(name);
+}
 
 // ラベル+値リストの一括保存（共通処理）。
 // list = [{<idKey>?, label, value}, ...]（配列の順番がそのまま表示順になる）
@@ -733,6 +817,7 @@ function publicApi_(p) {
       articles: articles,
       settings: publicKV_('sitesetting'),
       recruit: publicKV_('recruitsetting'),
+      photos: publicPhotos_(),
       generated_at: now
     };
   }
@@ -741,6 +826,17 @@ function publicApi_(p) {
 }
 
 // 公開してよい項目だけに絞る（内部管理用の列は出さない）
+// 写真の公開データ: {slot: image_url} のマップ（URL設定済みのactiveのみ）
+function publicPhotos_() {
+  try {
+    var out = {};
+    apiList('photo').forEach(function (r) {
+      if (r.status === 'active' && r.image_url && r.slot) out[r.slot] = r.image_url;
+    });
+    return out;
+  } catch (e) { return {}; } // シート未作成でもAPIを壊さない
+}
+
 // ラベル+値リストの公開データ（active のみ、表示順ソート）
 function publicKV_(kind) {
   try {

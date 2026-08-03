@@ -260,6 +260,7 @@ tbody tr:hover { background: var(--bg-sub); }
       <button class="nav-item" data-view="news"><span class="ico">📰</span><span class="txt">お知らせ</span></button>
       <button class="nav-item" data-view="article"><span class="ico">✍</span><span class="txt">記事</span></button>
       <button class="nav-item" data-view="recruit"><span class="ico">👷</span><span class="txt">採用情報</span></button>
+      <button class="nav-item" data-view="photos"><span class="ico">🖼</span><span class="txt">写真</span></button>
       <button class="nav-item" data-view="inquiry"><span class="ico">📥</span><span class="txt">お問い合わせ</span><span class="nav-badge" id="inqBadge"></span></button>
       <button class="nav-item" data-view="settings"><span class="ico">⚙</span><span class="txt">設定</span></button>
     </nav>
@@ -272,6 +273,7 @@ tbody tr:hover { background: var(--bg-sub); }
     <div class="view" id="view-news"></div>
     <div class="view" id="view-article"></div>
     <div class="view" id="view-recruit"></div>
+    <div class="view" id="view-photos"></div>
     <div class="view" id="view-inquiry"></div>
     <div class="view" id="view-settings"></div>
   </main>
@@ -313,6 +315,10 @@ if (typeof google === 'undefined') {
       recruitsettings: [
         { recruit_id: 'REC-0001', company_id: 'CMP-0001', label: '職務内容', value: '現場作業・工事管理（サンプル）', display_order: 10, status: 'active', created_at: '2026-07-17 09:00:00', updated_at: '2026-07-17 09:00:00' },
         { recruit_id: 'REC-0002', company_id: 'CMP-0001', label: '給与形態', value: '月給 25万円〜（サンプル）', display_order: 20, status: 'active', created_at: '2026-07-17 09:00:00', updated_at: '2026-07-17 09:00:00' }
+      ],
+      photos: [
+        { photo_id: 'PHT-0001', company_id: 'CMP-0001', slot: 'top-about', label: 'トップ：会社紹介の写真（サンプル）', image_url: '', display_order: 10, status: 'active', created_at: '2026-08-03 09:00:00', updated_at: '2026-08-03 09:00:00' },
+        { photo_id: 'PHT-0002', company_id: 'CMP-0001', slot: 'hero-about', label: '会社案内ページ：上部の背景（サンプル）', image_url: '', display_order: 20, status: 'active', created_at: '2026-08-03 09:00:00', updated_at: '2026-08-03 09:00:00' }
       ]
     };
     function mockSaveKV(rows, list, idKey, prefix) {
@@ -335,9 +341,21 @@ if (typeof google === 'undefined') {
     }
     var api = {
       apiGetAll: function () {
-        return { version: 'v3.4 (ローカルプレビュー)', spreadsheetName: 'Equal Web_DB（モック）', spreadsheetUrl: '#',
+        return { version: 'v3.5 (ローカルプレビュー)', spreadsheetName: 'Equal Web_DB（モック）', spreadsheetUrl: '#',
           company: mockDb.company, news: mockDb.news, article: mockDb.article, inquiry: mockDb.inquiry,
-          sitesettings: mockDb.sitesettings, recruitsettings: mockDb.recruitsettings };
+          sitesettings: mockDb.sitesettings, recruitsettings: mockDb.recruitsettings, photos: mockDb.photos };
+      },
+      apiUploadPhoto: function (photoId, filename, dataUrl) {
+        var t = mockDb.photos.filter(function (p) { return p.photo_id === photoId; })[0];
+        if (!t) throw new Error('対象の写真枠が見つかりません');
+        t.image_url = dataUrl; // モックではdataURLをそのままプレビューに使う
+        return mockDb.photos;
+      },
+      apiSetPhotoUrl: function (photoId, url) {
+        var t = mockDb.photos.filter(function (p) { return p.photo_id === photoId; })[0];
+        if (!t) throw new Error('対象の写真枠が見つかりません');
+        t.image_url = url || '';
+        return mockDb.photos;
       },
       apiSaveSettings: function (list) {
         mockDb.sitesettings = mockSaveKV(mockDb.sitesettings, list, 'setting_id', 'SET');
@@ -399,6 +417,7 @@ var state = {
   inquiry: [],
   sitesettings: [],
   recruitsettings: [],
+  photos: [],
   filter: { news: 'all', article: 'all' },
   currentView: 'dashboard'
 };
@@ -511,6 +530,7 @@ function render(view) {
   if (view === 'news') renderList('news');
   if (view === 'article') renderList('article');
   if (view === 'recruit') renderRecruit();
+  if (view === 'photos') renderPhotos();
   if (view === 'inquiry') renderInquiry();
   if (view === 'settings') renderSettings();
   updateInquiryBadge();
@@ -693,6 +713,107 @@ function saveRecruit() {
     toast(e.message || '保存に失敗しました', true);
     btn.disabled = false; btn.textContent = '保存';
   });
+}
+
+/* ==================== 写真（ホームページの画像差し替え） ==================== */
+function renderPhotos() {
+  var rows = state.photos
+    .filter(function (p) { return p.status !== 'archived'; })
+    .slice().sort(function (a, b) { return (Number(a.display_order) || 0) - (Number(b.display_order) || 0); });
+  var body;
+  if (!rows.length) {
+    body = '<div class="empty"><div class="big">🖼</div><div>写真枠が登録されていません。<br>セットアップ手順の seed（初期データ投入）を実行してください。</div></div>';
+  } else {
+    body = '<div class="card" style="padding:0;"><table><thead><tr>' +
+      '<th>場所</th><th style="width:130px;">現在の写真</th><th style="width:300px;"></th></tr></thead><tbody>' +
+      rows.map(function (p) {
+        return '<tr>' +
+          '<td><div style="font-weight:600;">' + esc(p.label) + '</div><div class="t-sub">' + esc(p.slot) + '</div></td>' +
+          '<td>' + (p.image_url
+            ? '<img src="' + esc(p.image_url) + '" alt="" style="height:52px;max-width:110px;object-fit:cover;border-radius:6px;border:1px solid var(--border);">'
+            : '<span style="color:var(--text-faint);font-size:12px;">サイト初期写真</span>') + '</td>' +
+          '<td class="t-actions">' +
+          '<button class="btn btn-sm btn-primary" onclick="pickPhoto(\'' + esc(p.photo_id) + '\')">📤 画像をアップロード</button> ' +
+          '<button class="btn btn-sm btn-ghost" onclick="setPhotoByUrl(\'' + esc(p.photo_id) + '\')">URL指定</button>' +
+          (p.image_url ? '<button class="btn btn-sm btn-danger-ghost" onclick="resetPhoto(\'' + esc(p.photo_id) + '\')">初期に戻す</button>' : '') +
+          '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+  $('#view-photos').innerHTML =
+    '<div class="page-head"><div><div class="page-title">写真</div>' +
+    '<div class="page-desc">ホームページの各所の写真を差し替えられます。アップロードした画像はGoogleドライブに保存され、ホームページに最大1分で反映されます。<br>' +
+    '横長の写真（横1200px以上推奨）がきれいに表示されます。「初期に戻す」でいつでも元の写真に戻せます。</div></div></div>' +
+    body +
+    '<input type="file" id="photo-file" accept="image/jpeg,image/png,image/webp" style="display:none;">';
+  $('#photo-file').addEventListener('change', onPhotoFile);
+}
+var _photoTarget = null;
+function pickPhoto(photoId) {
+  _photoTarget = photoId;
+  $('#photo-file').value = '';
+  $('#photo-file').click();
+}
+function onPhotoFile(e) {
+  var file = e.target.files && e.target.files[0];
+  if (!file || !_photoTarget) return;
+  var view = $('#view-photos');
+  view.classList.add('busy');
+  resizePhoto_(file, 1600, 0.85).then(function (dataUrl) {
+    return call('apiUploadPhoto', _photoTarget, file.name, dataUrl);
+  }).then(function (rows) {
+    state.photos = rows || [];
+    renderPhotos();
+    toast('写真をアップロードしました（HPには最大1分で反映）');
+  }).catch(function (err) {
+    toast((err && err.message) || 'アップロードに失敗しました', true);
+  }).finally(function () { view.classList.remove('busy'); });
+}
+// アップロード前にブラウザ側で縮小（最大幅maxW・JPEG化）して転送量を抑える
+function resizePhoto_(file, maxW, quality) {
+  return new Promise(function (resolve, reject) {
+    var img = new Image();
+    var url = URL.createObjectURL(file);
+    img.onload = function () {
+      try {
+        var scale = Math.min(1, maxW / img.naturalWidth);
+        var w = Math.round(img.naturalWidth * scale);
+        var h = Math.round(img.naturalHeight * scale);
+        var canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      } catch (err) { reject(err); }
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('画像を読み込めませんでした')); };
+    img.src = url;
+  });
+}
+function setPhotoByUrl(photoId) {
+  var url = prompt('画像のURLを入力してください（https://…）\n空にすると初期写真に戻ります');
+  if (url === null) return;
+  if (url.trim() !== '' && !/^https:\/\//.test(url.trim())) { toast('httpsのURLを入力してください', true); return; }
+  var view = $('#view-photos');
+  view.classList.add('busy');
+  call('apiSetPhotoUrl', photoId, url.trim()).then(function (rows) {
+    state.photos = rows || [];
+    renderPhotos();
+    toast(url.trim() ? '写真URLを設定しました' : '初期写真に戻しました');
+  }).catch(function (e) {
+    toast(e.message || '設定に失敗しました', true);
+  }).finally(function () { view.classList.remove('busy'); });
+}
+function resetPhoto(photoId) {
+  if (!confirm('この場所の写真をサイト初期の写真に戻しますか？')) return;
+  var view = $('#view-photos');
+  view.classList.add('busy');
+  call('apiSetPhotoUrl', photoId, '').then(function (rows) {
+    state.photos = rows || [];
+    renderPhotos();
+    toast('初期写真に戻しました');
+  }).catch(function (e) {
+    toast(e.message || '操作に失敗しました', true);
+  }).finally(function () { view.classList.remove('busy'); });
 }
 function saveCompany() {
   var form = $('#company-form');
@@ -1022,6 +1143,7 @@ function loadAll(isReload) {
     state.inquiry = d.inquiry || [];
     state.sitesettings = d.sitesettings || [];
     state.recruitsettings = d.recruitsettings || [];
+    state.photos = d.photos || [];
     $('#foot-version').textContent = 'Equal Web ' + d.version;
     $('#loader').style.display = 'none';
     render(state.currentView);
