@@ -17,5 +17,5 @@
    このファイルはHP訪問者全員に公開されるため、keyを書くと管理画面に侵入される。
    keyは「管理画面を開くURL」にだけ使う。 */
 window.EQUAL_WEB = {
-  apiUrl: "https://script.google.com/macros/s/AKfycbyF20tbkPMJ63dBIQ1gryoqaEIICA5hZkynt97YaXAX8R1MaLCRqaylPhJu-oTT2_OYpA/exec"
+  apiUrl: "https://script.google.com/macros/s/AKfycbwQxzh07bHjXzJtLwFmoBSOKxm7LXPY9ILs_g0oVMuD8JAegpw0xDM3DmgICJ2VEKr2vg/exec"
 };
