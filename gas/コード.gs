@@ -146,6 +146,20 @@ var SHEET_DEFS = {
       ['created_at', '登録日時（自動・編集しない）', 140],
       ['updated_at', '更新日時（自動・編集しない）', 140]
     ]
+  },
+  text_master: {
+    idPrefix: 'TXT',
+    columns: [
+      ['text_id', '主キー。TXT-0001形式（自動採番・編集しない）', 100],
+      ['company_id', '会社ID（company_masterのcompany_id）', 100],
+      ['slot', 'HP側の差し込み位置キー（英字。変更しない）', 140],
+      ['label', 'どこの文章か（例: トップ：会社紹介の本文）', 220],
+      ['value', '文章（空=HP初期の文章を表示。改行可・【】で囲むと強調色）', 380],
+      ['display_order', '表示順（管理画面の並び）', 90],
+      ['status', 'active=有効 / archived=論理削除', 90],
+      ['created_at', '登録日時（自動・編集しない）', 140],
+      ['updated_at', '更新日時（自動・編集しない）', 140]
+    ]
   }
 };
 
@@ -220,7 +234,7 @@ function buildSheet_(ss, name, def) {
     // プルダウン（入力規則）
     var list = null;
     if (colName === 'status') {
-      list = (name === 'company_master' || name === 'site_settings' || name === 'recruit_settings' || name === 'photo_master') ? STATUS_COMPANY
+      list = (name === 'company_master' || name === 'site_settings' || name === 'recruit_settings' || name === 'photo_master' || name === 'text_master') ? STATUS_COMPANY
            : (name === 'inquiry_log') ? STATUS_INQUIRY
            : STATUS_CONTENT;
     } else if (colName === 'category') {
@@ -396,7 +410,7 @@ function appendRowByHeader_(sheet, obj) {
 // お客様はスプレッドシートを開かず、必ずこの管理画面から編集する。
 // ============================================================
 
-var APP_VERSION = 'v3.5';
+var APP_VERSION = 'v3.6';
 
 var KIND_DEF = {
   news:           { sheet: 'news_master',      idKey: 'news_id',    prefix: 'NEWS' },
@@ -404,7 +418,8 @@ var KIND_DEF = {
   inquiry:        { sheet: 'inquiry_log',      idKey: 'inquiry_id', prefix: 'INQ' },
   sitesetting:    { sheet: 'site_settings',    idKey: 'setting_id', prefix: 'SET' },
   recruitsetting: { sheet: 'recruit_settings', idKey: 'recruit_id', prefix: 'REC' },
-  photo:          { sheet: 'photo_master',     idKey: 'photo_id',   prefix: 'PHT' }
+  photo:          { sheet: 'photo_master',     idKey: 'photo_id',   prefix: 'PHT' },
+  text:           { sheet: 'text_master',      idKey: 'text_id',    prefix: 'TXT' }
 };
 
 function doGet(e) {
@@ -442,7 +457,8 @@ function apiGetAll() {
     inquiry: safeList_('inquiry'),
     sitesettings: safeList_('sitesetting'),
     recruitsettings: safeList_('recruitsetting'),
-    photos: safeList_('photo')
+    photos: safeList_('photo'),
+    texts: safeList_('text')
   };
 }
 
@@ -513,29 +529,59 @@ function apiSaveRecruit(list) { return saveKVList_('recruitsetting', list); }
 // ==================== 写真管理（photo_master + Google Drive） ====================
 
 // 写真スロットの一括登録（seed用）。既存slotはスキップ。list = [{slot, label}]
-function apiSeedPhotoSlots(list) {
+function apiSeedPhotoSlots(list) { return seedSlots_('photo', list, { image_url: '' }); }
+
+// 文章スロットの一括登録（seed用）。既存slotはスキップ。list = [{slot, label, value}]
+function apiSeedTextSlots(list) { return seedSlots_('text', list); }
+
+// スロット型テーブルの初期登録（共通処理）
+function seedSlots_(kind, list, extra) {
+  var def = kindDef_(kind);
   var lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
-    var data = readRows_('photo_master');
+    var data = readRows_(def.sheet);
     var now = nowString_();
     list.forEach(function (item, i) {
       var exists = data.rows.some(function (r) { return r.slot === item.slot && r.status !== 'archived'; });
       if (exists) return;
-      appendRowByHeader_(data.sheet, {
-        photo_id: nextId_(data.sheet, 'PHT'),
+      var row = {
         company_id: defaultCompanyId_(),
         slot: item.slot,
         label: item.label,
-        image_url: '',
         display_order: (i + 1) * 10,
         status: 'active',
         created_at: now,
         updated_at: now
-      });
-      data = readRows_('photo_master');
+      };
+      row[def.idKey] = nextId_(data.sheet, def.prefix);
+      if (extra) Object.keys(extra).forEach(function (k) { row[k] = extra[k]; });
+      if (item.value != null) row.value = String(item.value);
+      appendRowByHeader_(data.sheet, row);
+      data = readRows_(def.sheet);
     });
-    return apiList('photo');
+    return apiList(kind);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// 説明文の一括保存。list = [{text_id, value}]（slot/labelは変更しない）
+function apiSaveTexts(list) {
+  if (!Array.isArray(list)) throw new Error('保存データの形式が不正です');
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    var data = readRows_('text_master');
+    var now = nowString_();
+    list.forEach(function (item) {
+      var target = data.rows.filter(function (r) { return r.text_id === item.text_id; })[0];
+      if (!target) return;
+      var merged = mergeRow_(data.headers, target, { value: item.value == null ? '' : String(item.value) });
+      merged.updated_at = now;
+      writeRow_(data.sheet, data.headers, target._row, merged);
+    });
+    return apiList('text');
   } finally {
     lock.releaseLock();
   }
@@ -818,6 +864,7 @@ function publicApi_(p) {
       settings: publicKV_('sitesetting'),
       recruit: publicKV_('recruitsetting'),
       photos: publicPhotos_(),
+      texts: publicTexts_(),
       generated_at: now
     };
   }
@@ -832,6 +879,17 @@ function publicPhotos_() {
     var out = {};
     apiList('photo').forEach(function (r) {
       if (r.status === 'active' && r.image_url && r.slot) out[r.slot] = r.image_url;
+    });
+    return out;
+  } catch (e) { return {}; } // シート未作成でもAPIを壊さない
+}
+
+// 説明文の公開データ: {slot: 文章} のマップ（文章が入っているactiveのみ）
+function publicTexts_() {
+  try {
+    var out = {};
+    apiList('text').forEach(function (r) {
+      if (r.status === 'active' && r.slot && String(r.value || '').trim() !== '') out[r.slot] = String(r.value);
     });
     return out;
   } catch (e) { return {}; } // シート未作成でもAPIを壊さない

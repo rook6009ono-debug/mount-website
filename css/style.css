@@ -62,6 +62,8 @@ section{padding:110px 0}
 .noanim .hero{min-height:760px}
 .noanim .hero .inner{padding-top:120px;padding-bottom:80px}
 
+.ac{color:var(--accent)}
+
 .sp-only{display:none}
 @media(max-width:820px){.sp-only{display:inline}}
 

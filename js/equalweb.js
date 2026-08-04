@@ -109,6 +109,26 @@
     });
   }
 
+  /* ---- 説明文差し替え（[data-ew-text] がある場合のみ）----
+     map = {slot: 文章}。文章が設定されているスロットだけ差し替え、
+     未設定のスロットはHTMLに書かれた初期の文章のまま。
+     改行はそのまま、空行で段落分け（DIV要素のみ）、【】は強調色になる。 */
+  function applyTexts(map) {
+    if (!map) return;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-ew-text]'), function (el) {
+      var v = map[el.getAttribute('data-ew-text')];
+      if (!v) return;
+      var html = esc(v).replace(/【([^】]*)】/g, '<span class="ac">$1</span>');
+      if (el.tagName === 'DIV') {
+        el.innerHTML = html.split(/\n\s*\n/).map(function (p) {
+          return '<p>' + p.replace(/\n/g, '<br>') + '</p>';
+        }).join('');
+      } else {
+        el.innerHTML = html.replace(/\n/g, '<br>');
+      }
+    });
+  }
+
   /* ---- 会社概要反映（[data-ew] / [data-ew-href] がある場合のみ） ---- */
   function fillCompany(c) {
     if (!c) return;
@@ -157,6 +177,7 @@
     renderSettings(d.settings || []);
     renderRecruit(d.recruit || []);
     applyPhotos(d.photos || null);
+    applyTexts(d.texts || null);
     var st = document.getElementById('ewStamp');
     if (st) st.textContent = isMock ? '（サンプルデータ表示中 — Equal Web接続前）' : (d.generated_at ? '最終更新 ' + String(d.generated_at).slice(11, 16) : '');
     if (typeof window.reveal === 'function') window.reveal();
