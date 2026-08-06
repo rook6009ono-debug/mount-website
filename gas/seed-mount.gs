@@ -56,8 +56,49 @@ function seedMount() {
   seedMountRecruit();
   seedMountPhotos();
   seedMountTexts();
+  seedMountWorks();
 
   Logger.log('マウント初期データの投入が完了しました');
+}
+
+/**
+ * サンプル施工事例の投入（v3.7 施工事例ページ）。
+ * 再実行しても同じスラッグの記事はスキップされる（安全）。
+ * 書き方の見本用。管理画面「記事」から編集・削除できる。
+ */
+function seedMountWorks() {
+  var samples = [
+    {
+      title: '◯◯マンション 屋上防水改修工事（サンプル）',
+      slug: 'sample-bousui',
+      summary: '経年劣化した屋上のウレタン防水を全面改修。雨漏りを解消し、建物の寿命を延ばしました。',
+      body: '# 屋上防水改修工事\n\n**工期:** 約3週間 ／ **場所:** 東京都立川市\n\n![施工写真](img/ren-bousui.jpg)\n\n## 工事の内容\n\n- 既存防水層の撤去・下地調整\n- ウレタン塗膜防水（通気緩衝工法）\n- トップコート仕上げ\n\n経年劣化により雨漏りが発生していた屋上を全面改修しました。これはEqual Webの動作確認用サンプルです。管理画面「記事」から削除・編集できます。',
+      category: '施工事例',
+      tags: '防水工事',
+      thumbnail_url: 'img/ren-bousui.jpg',
+      is_featured: true,
+      status: 'published',
+      published_at: nowString_()
+    },
+    {
+      title: '◯◯ビル 外壁塗装・シーリング工事（サンプル）',
+      slug: 'sample-tosou',
+      summary: '外壁の全面塗装とシーリング打ち替えで、美観と防水性能を回復しました。',
+      body: '# 外壁塗装・シーリング工事\n\n![施工写真](img/ren-paint.jpg)\n\n足場を設置し、高圧洗浄・下地補修のうえシリコン系塗料で全面塗装。サッシ廻りのシーリングも打ち替えました。これはサンプル記事です。',
+      category: '施工事例',
+      tags: '塗装工事,シーリング工事',
+      thumbnail_url: 'img/ren-paint.jpg',
+      is_featured: false,
+      status: 'published',
+      published_at: nowString_()
+    }
+  ];
+  var existing = apiList('article');
+  samples.forEach(function (a) {
+    if (existing.some(function (r) { return r.slug === a.slug; })) return;
+    apiSaveItem('article', a);
+  });
+  Logger.log('サンプル施工事例の投入が完了しました');
 }
 
 /**
@@ -116,7 +157,8 @@ function seedMountPhotos() {
     { slot: 'electric-work', label: '電気事業：ワンストップ対応の写真' },
     { slot: 'hero-recruit', label: '採用情報：ページ上部の背景写真' },
     { slot: 'recruit-message', label: '採用情報：メッセージ横の写真' },
-    { slot: 'hero-contact', label: 'お問い合わせ：ページ上部の背景写真' }
+    { slot: 'hero-contact', label: 'お問い合わせ：ページ上部の背景写真' },
+    { slot: 'hero-works', label: '施工事例：ページ上部の背景写真' }
   ]);
   Logger.log('写真枠の初期登録が完了しました');
 }

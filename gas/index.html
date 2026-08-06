@@ -347,7 +347,7 @@ if (typeof google === 'undefined') {
     }
     var api = {
       apiGetAll: function () {
-        return { version: 'v3.6 (ローカルプレビュー)', spreadsheetName: 'Equal Web_DB（モック）', spreadsheetUrl: '#',
+        return { version: 'v3.7 (ローカルプレビュー)', spreadsheetName: 'Equal Web_DB（モック）', spreadsheetUrl: '#',
           company: mockDb.company, news: mockDb.news, article: mockDb.article, inquiry: mockDb.inquiry,
           sitesettings: mockDb.sitesettings, recruitsettings: mockDb.recruitsettings, photos: mockDb.photos,
           texts: mockDb.texts };
@@ -370,6 +370,9 @@ if (typeof google === 'undefined') {
         if (!t) throw new Error('対象の写真枠が見つかりません');
         t.image_url = url || '';
         return mockDb.photos;
+      },
+      apiUploadImage: function (filename, dataUrl) {
+        return { url: dataUrl }; // モックではdataURLをそのまま返す
       },
       apiSaveSettings: function (list) {
         mockDb.sitesettings = mockSaveKV(mockDb.sitesettings, list, 'setting_id', 'SET');
@@ -999,6 +1002,10 @@ function fieldHtml_(f, val) {
   var h = '<div class="field' + (f.wide ? ' wide' : '') + '"><label>' + esc(f.label) + (f.req ? '<span class="req">*</span>' : '') + '</label>';
   if (f.type === 'textarea') {
     h += '<textarea name="' + f.key + '" class="' + (f.tall ? 'tall' : '') + '" placeholder="' + esc(f.ph || '') + '">' + esc(val) + '</textarea>';
+  } else if (f.upload) {
+    h += '<div style="display:flex;gap:6px;align-items:center;">' +
+      '<input type="text" name="' + f.key + '" value="' + esc(val) + '" placeholder="' + esc(f.ph || '') + '" style="flex:1;">' +
+      '<button type="button" class="btn btn-sm" data-upload-for="' + f.key + '" title="画像をアップロードしてURLを入れる">📤 画像</button></div>';
   } else if (f.type === 'select') {
     h += '<select name="' + f.key + '">' + f.options.map(function (o) {
       return '<option value="' + esc(o) + '"' + (val === o ? ' selected' : '') + '>' + esc(o) + '</option>';
@@ -1018,7 +1025,7 @@ function editorFields_(kind) {
     { key: 'published_at', label: '公開日時', type: 'datetime', hint: 'この日時以降にホームページへ表示されます' },
     { key: 'body', label: '本文', type: 'textarea', wide: true, ph: '短い告知文。空欄でもOK' },
     { key: 'link_url', label: '詳細リンク先URL', ph: 'https://…' },
-    { key: 'image_url', label: '画像URL', ph: 'https://…' },
+    { key: 'image_url', label: '画像URL', ph: 'https://…', upload: true, hint: '📤ボタンで写真をアップロードするとURLが自動で入ります' },
     { key: 'is_pinned', label: '📌 一覧の先頭に固定する', type: 'checkbox', wide: true }
   ];
   return [
@@ -1027,9 +1034,9 @@ function editorFields_(kind) {
     { key: 'category', label: 'カテゴリ', type: 'select', options: CATEGORY.article },
     { key: 'summary', label: '概要・抜粋', type: 'textarea', wide: true, ph: '一覧カードに表示される短い説明' },
     { key: 'body', label: '本文（Markdown）', req: true, type: 'textarea', tall: true, wide: true, ph: '# 見出し\n\n本文はMarkdownで書けます。' },
-    { key: 'tags', label: 'タグ', ph: '外壁,リフォーム', hint: 'カンマ区切り' },
+    { key: 'tags', label: 'タグ（工事ジャンル）', ph: '防水工事,塗装工事', hint: 'カンマ区切り。施工事例はこのジャンルでHPの絞り込みに使われます' },
     { key: 'author_name', label: '執筆者名' },
-    { key: 'thumbnail_url', label: 'サムネイル画像URL', ph: 'https://…' },
+    { key: 'thumbnail_url', label: 'サムネイル画像URL', ph: 'https://…', upload: true, hint: '📤ボタンで写真をアップロードするとURLが自動で入ります' },
     { key: 'published_at', label: '公開日時', type: 'datetime' },
     { key: 'is_featured', label: '⭐ 注目記事にする', type: 'checkbox', wide: true }
   ];
@@ -1058,6 +1065,36 @@ function closeModal() {
 }
 $('#modal-overlay').addEventListener('click', function (e) {
   if (e.target === this) closeModal();
+});
+
+/* ---- エディタ内の画像アップロード（📤ボタン → Drive → URL自動入力） ---- */
+var _editorUpKey = null;
+var _editorUpInput = document.createElement('input');
+_editorUpInput.type = 'file';
+_editorUpInput.accept = 'image/jpeg,image/png,image/webp';
+_editorUpInput.style.display = 'none';
+document.body.appendChild(_editorUpInput);
+$('#modal').addEventListener('click', function (e) {
+  var btn = e.target.closest('button[data-upload-for]');
+  if (!btn) return;
+  _editorUpKey = btn.dataset.uploadFor;
+  _editorUpInput.value = '';
+  _editorUpInput.click();
+});
+_editorUpInput.addEventListener('change', function () {
+  var file = _editorUpInput.files && _editorUpInput.files[0];
+  if (!file || !_editorUpKey) return;
+  var modal = $('#modal');
+  modal.classList.add('busy');
+  resizePhoto_(file, 1600, 0.85).then(function (dataUrl) {
+    return call('apiUploadImage', file.name, dataUrl);
+  }).then(function (r) {
+    var form = $('#editor-form');
+    if (form && form.elements[_editorUpKey]) form.elements[_editorUpKey].value = r.url;
+    toast('画像をアップロードしました（URLを入力欄に入れました）');
+  }).catch(function (err) {
+    toast((err && err.message) || 'アップロードに失敗しました', true);
+  }).finally(function () { modal.classList.remove('busy'); });
 });
 function saveEditor(kind, id) {
   var form = $('#editor-form');

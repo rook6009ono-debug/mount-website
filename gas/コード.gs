@@ -410,7 +410,7 @@ function appendRowByHeader_(sheet, obj) {
 // お客様はスプレッドシートを開かず、必ずこの管理画面から編集する。
 // ============================================================
 
-var APP_VERSION = 'v3.6';
+var APP_VERSION = 'v3.7';
 
 var KIND_DEF = {
   news:           { sheet: 'news_master',      idKey: 'news_id',    prefix: 'NEWS' },
@@ -589,15 +589,20 @@ function apiSaveTexts(list) {
 
 // 画像アップロード: base64のdataURLを受け取り、Driveに保存して公開URLを写真行に記録する
 function apiUploadPhoto(photoId, filename, dataUrl) {
+  var r = apiUploadImage(filename || ('photo-' + photoId), dataUrl);
+  return apiSetPhotoUrl(photoId, r.url);
+}
+
+// 汎用画像アップロード (v3.7): Driveに保存して公開URLを返す（記事サムネイル・お知らせ画像用）
+function apiUploadImage(filename, dataUrl) {
   var m = String(dataUrl || '').match(/^data:(image\/[a-z0-9+.-]+);base64,(.+)$/i);
   if (!m) throw new Error('画像データの形式が不正です');
   var bytes = Utilities.base64Decode(m[2]);
   if (bytes.length > 8 * 1024 * 1024) throw new Error('画像が大きすぎます（8MBまで）');
-  var blob = Utilities.newBlob(bytes, m[1], filename || ('photo-' + photoId));
+  var blob = Utilities.newBlob(bytes, m[1], filename || 'image');
   var file = photoFolder_().createFile(blob);
   file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-  var url = 'https://lh3.googleusercontent.com/d/' + file.getId();
-  return apiSetPhotoUrl(photoId, url);
+  return { url: 'https://lh3.googleusercontent.com/d/' + file.getId() };
 }
 
 // 画像URLの直接設定（''で初期写真に戻す）。戻り値は最新一覧

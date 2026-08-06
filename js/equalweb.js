@@ -56,12 +56,38 @@
       { id: 'S2', title: '夏季休業のお知らせ（8/13〜8/16）', body: '誠に勝手ながら、下記期間を夏季休業とさせていただきます。\n期間中のお問い合わせは、休業明けに順次ご対応いたします。', category: '営業案内', link_url: '', image_url: '', is_pinned: false, published_at: '2026-07-10 10:00:00' },
       { id: 'S3', title: '電気事業部 スタッフ募集を開始しました', body: '', category: '採用', link_url: 'recruit.html', image_url: '', is_pinned: false, published_at: '2026-07-01 09:00:00' }
     ],
-    articles: [],
+    articles: [
+      { id: 'A1', title: '◯◯マンション 屋上防水改修工事（サンプル）', slug: 'sample-bousui', summary: '経年劣化した屋上のウレタン防水を全面改修。雨漏りを解消し、建物の寿命を延ばしました。', body: '# 屋上防水改修工事\n\n**工期:** 約3週間 ／ **場所:** 東京都立川市\n\n![施工写真](img/ren-bousui.jpg)\n\n## 工事の内容\n\n- 既存防水層の撤去・下地調整\n- ウレタン塗膜防水（通気緩衝工法）\n- トップコート仕上げ\n\n経年劣化により雨漏りが発生していた屋上を全面改修しました。これはEqual Webの動作確認用サンプルです。管理画面「記事」から削除・編集できます。', category: '施工事例', tags: ['防水工事'], thumbnail_url: 'img/ren-bousui.jpg', author_name: '', is_featured: true, published_at: '2026-07-20 09:00:00' },
+      { id: 'A2', title: '◯◯ビル 外壁塗装・シーリング工事（サンプル）', slug: 'sample-tosou', summary: '外壁の全面塗装とシーリング打ち替えで、美観と防水性能を回復しました。', body: '# 外壁塗装・シーリング工事\n\n![施工写真](img/ren-paint.jpg)\n\n足場を設置し、高圧洗浄・下地補修のうえシリコン系塗料で全面塗装。サッシ廻りのシーリングも打ち替えました。これはサンプル記事です。', category: '施工事例', tags: ['塗装工事', 'シーリング工事'], thumbnail_url: 'img/ren-paint.jpg', author_name: '', is_featured: false, published_at: '2026-07-10 09:00:00' }
+    ],
     generated_at: ''
   };
 
   function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
   function fmtD(s) { return String(s || '').slice(0, 10).replace(/-/g, '.'); }
+
+  /* ---- 簡易Markdown→HTML（エスケープ済みテキストに適用） ---- */
+  function md(src) {
+    var lines = esc(src || '').split(/\r?\n/), out = [], list = null;
+    function closeList() { if (list) { out.push(list === 'ul' ? '</ul>' : '</ol>'); list = null; } }
+    function inline(t) {
+      return t
+        .replace(/!\[([^\]]*)\]\((https?:[^)\s]+|[a-zA-Z0-9_\-./]+\.(?:jpg|jpeg|png|webp|gif))\)/g, '<img src="$2" alt="$1" loading="lazy">')
+        .replace(/\[([^\]]+)\]\((https?:[^)\s]+|#[^)\s]*)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    }
+    lines.forEach(function (ln) {
+      var t = ln.trim(), m;
+      if (!t) { closeList(); return; }
+      if (m = t.match(/^(#{1,4})\s+(.*)/)) { closeList(); var lv = Math.min(m[1].length + 1, 5); out.push('<h' + lv + '>' + inline(m[2]) + '</h' + lv + '>'); return; }
+      if (/^(---|\*\*\*)$/.test(t)) { closeList(); out.push('<hr>'); return; }
+      if (m = t.match(/^&gt;\s?(.*)/)) { closeList(); out.push('<blockquote>' + inline(m[1]) + '</blockquote>'); return; }
+      if (m = t.match(/^[-*]\s+(.*)/)) { if (list !== 'ul') { closeList(); out.push('<ul>'); list = 'ul'; } out.push('<li>' + inline(m[1]) + '</li>'); return; }
+      if (m = t.match(/^\d+\.\s+(.*)/)) { if (list !== 'ol') { closeList(); out.push('<ol>'); list = 'ol'; } out.push('<li>' + inline(m[1]) + '</li>'); return; }
+      closeList(); out.push('<p>' + inline(t) + '</p>');
+    });
+    closeList(); return out.join('');
+  }
 
   /* ---- モーダル ---- */
   var modal = null;
@@ -157,6 +183,71 @@
   function renderSettings(list) { renderKV('ewSettings', list); }
   function renderRecruit(list) { renderKV('ewRecruit', list); }
 
+  /* ---- 施工事例（#ewWorks がある場合のみ）----
+     記事のうち category=施工事例 を表示。タグ=工事ジャンルで絞り込み。
+     URLの ?genre=◯◯ で初期絞り込み（リノベーションページからの導線）。 ---- */
+  function renderWorks(articles) {
+    var grid = document.getElementById('ewWorks');
+    if (!grid) return;
+    var chipsEl = document.getElementById('wkChips');
+    var emptyEl = document.getElementById('wkEmpty');
+    var works = (articles || []).filter(function (a) { return a.category === '施工事例'; });
+    var genre = '';
+    try { genre = new URLSearchParams(location.search).get('genre') || ''; } catch (e) { }
+
+    // ジャンル一覧 = 登録済みタグの集合（+URL指定ジャンル）
+    var genres = [];
+    works.forEach(function (a) { (a.tags || []).forEach(function (t) { if (genres.indexOf(t) === -1) genres.push(t); }); });
+    if (genre && genres.indexOf(genre) === -1) genres.push(genre);
+
+    function draw() {
+      var list = genre ? works.filter(function (a) { return (a.tags || []).indexOf(genre) !== -1; }) : works;
+
+      if (chipsEl) {
+        chipsEl.innerHTML = ['<button class="wk-chip' + (genre === '' ? ' on' : '') + '" data-g="">すべて<span>' + works.length + '</span></button>']
+          .concat(genres.map(function (g) {
+            var n = works.filter(function (a) { return (a.tags || []).indexOf(g) !== -1; }).length;
+            return '<button class="wk-chip' + (genre === g ? ' on' : '') + '" data-g="' + esc(g) + '">' + esc(g) + '<span>' + n + '</span></button>';
+          })).join('');
+        Array.prototype.forEach.call(chipsEl.querySelectorAll('.wk-chip'), function (b) {
+          b.onclick = function () {
+            genre = b.dataset.g;
+            try { history.replaceState(null, '', genre ? '?genre=' + encodeURIComponent(genre) : location.pathname); } catch (e) { }
+            draw();
+          };
+        });
+      }
+
+      grid.innerHTML = list.map(function (a, i) {
+        var thumb = a.thumbnail_url
+          ? '<div class="wk-thumb"><img src="' + esc(a.thumbnail_url) + '" alt="" loading="lazy"></div>'
+          : '<div class="wk-thumb wk-thumb-ph">🏗</div>';
+        return '<div class="wk-card" data-slug="' + esc(a.slug) + '">' + thumb +
+          '<div class="wk-bd">' +
+          '<div class="wk-tags">' + (a.tags || []).map(function (t) { return '<span>' + esc(t) + '</span>'; }).join('') + '</div>' +
+          '<div class="wk-title">' + esc(a.title) + '</div>' +
+          (a.summary ? '<div class="wk-sum">' + esc(a.summary) + '</div>' : '') +
+          '<div class="wk-date">' + esc(fmtD(a.published_at)) + '</div>' +
+          '</div></div>';
+      }).join('');
+
+      if (emptyEl) emptyEl.hidden = list.length > 0;
+
+      Array.prototype.forEach.call(grid.querySelectorAll('.wk-card'), function (card) {
+        card.onclick = function () {
+          var a = list.filter(function (x) { return x.slug === card.dataset.slug; })[0];
+          if (!a) return;
+          var body = md(a.body) +
+            ((a.tags && a.tags.length) ? '<div class="ewm-tags">' + a.tags.map(function (t) { return '<span class="ewm-tag">#' + esc(t) + '</span>'; }).join('') + '</div>' : '');
+          openModal('<span class="ewn-cat">施工事例</span><span>' + esc(fmtD(a.published_at)) + '</span>', a.title, body);
+        };
+      });
+
+      if (typeof window.reveal === 'function') window.reveal();
+    }
+    draw();
+  }
+
   /* ---- 写真差し替え（[data-photo] がある場合のみ）----
      map = {slot: 画像URL}。URLが設定されているスロットだけ差し替え、
      未設定のスロットはHTMLに書かれた初期写真のまま。 */
@@ -173,6 +264,7 @@
   /* ---- 描画・取得 ---- */
   function render(d, isMock) {
     renderNews(d.news || []);
+    renderWorks(d.articles || []);
     fillCompany(d.company);
     renderSettings(d.settings || []);
     renderRecruit(d.recruit || []);
