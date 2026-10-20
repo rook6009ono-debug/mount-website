@@ -1,21 +1,4 @@
-﻿/* ========================================================================
-   Equal Web 連携設定（株式会社マウント公式サイト）
-   ------------------------------------------------------------------------
-   apiUrl に GASウェブアプリのURL（…/exec）を貼ると、
-   お知らせ・会社概要・お問い合わせ受信が Equal Web と接続される。
-
-   手順:
-   1. Equal Web_DB（マウント用にコピーしたもの）のGASエディタで
-      enablePublicMode() を1回実行（管理画面キーが発行される）
-   2. 「デプロイ」→「新しいデプロイ」→ ウェブアプリ
-      実行: 自分 ／ アクセス: 全員
-   3. 発行された …/exec のURLを下の apiUrl に貼る
-
-   空文字("")のままだとサンプルデータを表示する（デモ・開発用）。
-======================================================================== */
-/* 注意: ここには ?key=… を絶対に付けないこと。
-   このファイルはHP訪問者全員に公開されるため、keyを書くと管理画面に侵入される。
-   keyは「管理画面を開くURL」にだけ使う。 */
+/* Equal Web: MOUNT専用Supabase公開API。管理キー・個人情報を含めない。 */
 window.EQUAL_WEB = {
-  apiUrl: "https://script.google.com/macros/s/AKfycbwQxzh07bHjXzJtLwFmoBSOKxm7LXPY9ILs_g0oVMuD8JAegpw0xDM3DmgICJ2VEKr2vg/exec"
+  apiUrl: "https://jpcnyzbhaqfjcpkenlfw.supabase.co/functions/v1/equal-web?site=mount"
 };

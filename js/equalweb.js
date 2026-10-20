@@ -8,7 +8,7 @@
 ============================================================ */
 (function () {
   'use strict';
-  var API = ((window.EQUAL_WEB || {}).apiUrl || '').trim().replace(/\?.*$/, '');
+  var API = ((window.EQUAL_WEB || {}).apiUrl || '').trim();
 
   /* ---- サンプルデータ（API未接続時のみ使用） ---- */
   var MOCK = {
@@ -276,7 +276,7 @@
   }
   function load() {
     if (!API) { render(MOCK, true); return; }
-    fetch(API + '?action=api').then(function (r) { return r.json(); }).then(function (d) { render(d, false); })
+    fetch(API).then(function (r) { return r.json(); }).then(function (d) { render(d, false); })
       .catch(function (e) { console.warn('Equal Web API 接続エラー:', e); render(MOCK, true); });
   }
   if (document.getElementById('ewNews') || document.querySelector('[data-ew]')) {
@@ -285,6 +285,7 @@
   }
 
   /* ---- お問い合わせフォーム（#cform がある場合のみ） ---- */
+  var pendingInquiry = null;
   var form = document.getElementById('cform');
   if (form) {
     form.addEventListener('submit', function (e) {
@@ -304,7 +305,10 @@
       function fail() { btn.disabled = false; btn.innerHTML = '送信する <span class="ar">→</span>'; alert('送信に失敗しました。お手数ですが、時間をおいて再度お試しください。'); }
       btn.disabled = true; btn.textContent = '送信中…';
       if (!API) { setTimeout(done, 600); return; } // API未接続（デモ）時は成功扱い
-      fetch(API, { method: 'POST', body: JSON.stringify(payload) }) // Content-Type未指定=text/plainでCORSプリフライト回避
+      var fingerprint = JSON.stringify(payload);
+      if (!pendingInquiry || pendingInquiry.fingerprint !== fingerprint) pendingInquiry = {fingerprint: fingerprint, id: crypto.randomUUID()};
+      payload.requestId = pendingInquiry.id;
+      fetch(API, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) }) // 会社専用APIで受信し、再送は同じ受付IDで重複を防ぐ
         .then(function (r) { return r.json(); })
         .then(function (d) { if (d && d.ok) { done(); } else { console.warn('inquiry error:', d); fail(); } })
         .catch(function (err) { console.warn('inquiry error:', err); fail(); });
