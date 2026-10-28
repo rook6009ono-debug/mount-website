@@ -1,0 +1,70 @@
+.business-map-page{background:#f5f7f5;color:#102737}
+.business-map-page .site-header{position:relative;background:white;color:#102737}
+.business-map-page .brand .mk{background:#102737}
+.business-map-page .brand .en,.business-map-page .brand .jp{color:#102737}
+.business-map-page .gnav .nv{color:#102737}
+.business-map-page .nav-tgl span{background:#102737}
+.map-intro{max-width:1440px;margin:auto;padding:42px 4% 20px;display:flex;align-items:end;justify-content:space-between;gap:24px}
+.map-kicker{font:500 13px 'Oswald',sans-serif;letter-spacing:.24em;color:#607f6b;margin-bottom:10px}
+.map-intro h1{font-size:clamp(25px,3vw,43px);letter-spacing:-.035em;line-height:1.35}
+.map-intro p{font-size:13px;color:#52666f;margin-top:12px}
+.motion-toggle{flex:none;border:1px solid #b8c8be;padding:10px 18px;background:white;color:#102737;border-radius:24px;font-size:12px}
+.map-shell{margin:0 auto;max-width:1500px;position:relative;padding:0 20px}
+.map-viewport{overflow:auto;border:1px solid #dce5df;background:#eaf0ed;border-radius:18px;scrollbar-color:#9db5a8 #edf2ef}
+.city-canvas{position:relative;width:100%;min-width:1000px;aspect-ratio:1400/830;isolation:isolate}
+.city-canvas svg{width:100%;height:100%;display:block}
+.map-pin{position:absolute;transform:translate(-50%,-50%);padding:6px 11px 6px 6px;border-radius:24px;background:#fff;color:#102737;box-shadow:0 3px 12px #10273720;display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;white-space:nowrap;z-index:2;border:1px solid #d1e0d7;transition:transform .18s,background .18s}
+.map-pin b{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#607f6b;color:white;font:500 11px 'Oswald',sans-serif}
+.map-pin.electric b{background:#102737}
+.map-pin:hover,.map-pin:focus-visible{transform:translate(-50%,-50%) scale(1.07);background:#e1efe7;z-index:4;outline:3px solid #607f6b;outline-offset:3px}
+.map-caption{display:flex;justify-content:space-between;gap:12px;font-size:11px;color:#61736a;padding:12px 4px}
+.map-swipe{display:none}
+.map-legend{position:absolute;left:3%;top:4%;z-index:1;pointer-events:none}
+.map-legend strong{display:block;font:500 33px/.95 'Oswald',sans-serif;letter-spacing:-.02em;color:#102737}
+.map-legend span{display:block;font-size:10px;letter-spacing:.2em;margin-top:9px;color:#607f6b}
+.map-index{max-width:1440px;margin:auto;padding:30px 4% 60px;display:grid;grid-template-columns:1.45fr 1fr;gap:40px}
+.map-index h2{font-size:19px;margin-bottom:15px}.map-index h2 span{font:400 12px 'Oswald';letter-spacing:.15em;color:#607f6b;margin-left:12px}
+.service-list{display:flex;flex-wrap:wrap;gap:8px}
+.service-list button{border:1px solid #d0ddd4;border-radius:7px;padding:9px 14px;background:white;color:#102737;font-size:12px}
+.service-list button:hover,.service-list button:focus-visible{background:#e1efe7;outline:2px solid #607f6b;outline-offset:1px}
+.service-dialog{margin:auto;border:none;border-radius:16px;width:min(580px,calc(100% - 32px));padding:34px;color:#102737;box-shadow:0 20px 100px #10273740;max-height:85svh;overflow:auto}
+.service-dialog::backdrop{background:#102737aa;backdrop-filter:blur(5px)}
+.dialog-close{position:absolute;right:16px;top:12px;font-size:26px;width:38px;height:38px;color:#102737}
+.dialog-kicker{font:500 12px 'Oswald';letter-spacing:.18em;color:#607f6b;margin-bottom:16px}
+.service-dialog h2{font-size:28px;line-height:1.4;margin-bottom:18px;padding-right:20px}
+.service-dialog p{font-size:14px;line-height:1.9}.service-dialog ul{margin:20px 0;display:flex;gap:8px;flex-wrap:wrap}.service-dialog li{font-size:12px;padding:7px 11px;background:#eef3ef;border-radius:4px}
+.dialog-note{color:#738178;font-size:11px!important;padding-top:14px;border-top:1px solid #e1e8e3}
+.dialog-link{display:inline-block;margin-top:22px;padding:11px 18px;background:#607f6b;color:white;border-radius:4px;font-size:13px}
+.map-footer{padding:25px 4%;background:#102737;color:white;font-size:12px;display:flex;justify-content:space-between}
+.city-canvas .interactive-art{cursor:pointer}.city-canvas .interactive-art:hover{filter:drop-shadow(0 0 7px #148a4d80)}
+.city-canvas .interactive-art:focus-visible{outline:none;filter:drop-shadow(0 0 6px #148a4d)}
+.city-canvas .is-highlighted{filter:drop-shadow(0 0 10px #148a4d99)}
+.city-canvas .signal-red{fill:#eb725e}.city-canvas .signal-green{fill:#265a49}.city-canvas .signal-yellow{fill:#665f3e}
+@media(prefers-reduced-motion:no-preference){
+ .city-canvas .worker-arm{animation:work-arm 1.8s ease-in-out infinite;transform-box:fill-box;transform-origin:10% 50%}
+ .city-canvas .roller{animation:roller-work 2.8s ease-in-out infinite}
+ .city-canvas .water-spray{animation:spray .8s linear infinite}
+ .city-canvas .pedestrian{animation:walk-city 12s linear infinite}
+ .city-canvas .pedestrian.second{animation-delay:-6s;animation-duration:16s}
+ .city-canvas .vehicle{animation:drive-city 20s linear infinite}
+ .city-canvas .signal-red{animation:signal-red 12s steps(1,end) infinite}
+ .city-canvas .signal-green{animation:signal-green 12s steps(1,end) infinite}
+ .city-canvas .signal-yellow{animation:signal-yellow 12s steps(1,end) infinite}
+ .city-canvas .data-flow{animation:data-flow 3s linear infinite;stroke-dasharray:7 18}
+ .city-canvas .light-beam{animation:lamp-glow 5s ease-in-out infinite}
+ .city-canvas .roof-coating{animation:roof-coat 5s ease-in-out infinite;transform-origin:left;transform-box:fill-box}
+ @keyframes work-arm{0%,100%{transform:rotate(-12deg)}50%{transform:rotate(18deg)}}
+ @keyframes roller-work{0%,100%{transform:translateY(0)}50%{transform:translateY(-24px)}}
+ @keyframes spray{0%,100%{opacity:.3}50%{opacity:.9}}
+ @keyframes walk-city{0%{transform:translate(0,0)}50%{transform:translate(82px,23px)}100%{transform:translate(0,0)}}
+ @keyframes drive-city{0%,100%{transform:translate(0,0)}45%,55%{transform:translate(170px,60px)}}
+ @keyframes signal-red{0%,58%{fill:#eb725e}60%,100%{fill:#653c38}}
+ @keyframes signal-green{0%,58%{fill:#265a49}60%,90%{fill:#63dba0}92%,100%{fill:#265a49}}
+ @keyframes signal-yellow{0%,90%{fill:#665f3e}92%,100%{fill:#f0c866}}
+ @keyframes data-flow{to{stroke-dashoffset:-100}}
+ @keyframes lamp-glow{0%,100%{opacity:.2}50%{opacity:.65}}
+ @keyframes roof-coat{0%,100%{opacity:.4}50%{opacity:1}}
+}
+.city-canvas.is-paused *{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){.city-canvas *{animation:none!important}.map-pin{transition:none}}
+@media(max-width:700px){.map-intro{padding-top:26px;display:block}.map-intro h1{font-size:26px}.map-intro p{font-size:12px}.motion-toggle{padding:8px 10px;font-size:11px;margin-top:14px}.map-shell{padding:0 12px}.map-index{grid-template-columns:1fr;gap:26px;padding:22px 20px 40px}.map-swipe{display:block}.map-caption{flex-direction:column;gap:2px}.map-legend strong{font-size:27px}.service-dialog{padding:28px 22px}.service-dialog h2{font-size:24px}.map-footer{gap:12px;flex-wrap:wrap}}
