@@ -142,8 +142,9 @@
   function applyTexts(map) {
     if (!map) return;
     Array.prototype.forEach.call(document.querySelectorAll('[data-ew-text]'), function (el) {
+      if (el._ewInitialHtml === undefined) el._ewInitialHtml = el.innerHTML;
       var v = map[el.getAttribute('data-ew-text')];
-      if (!v) return;
+      if (!v) { el.innerHTML = el._ewInitialHtml; return; }
       var html = esc(v).replace(/【([^】]*)】/g, '<span class="ac">$1</span>');
       if (el.tagName === 'DIV') {
         el.innerHTML = html.split(/\n\s*\n/).map(function (p) {
@@ -255,9 +256,11 @@
     if (!map) return;
     Array.prototype.forEach.call(document.querySelectorAll('[data-photo]'), function (el) {
       var url = map[el.getAttribute('data-photo')];
-      if (!url) return;
       var img = el.tagName === 'IMG' ? el : el.querySelector('img');
-      if (img && img.src !== url) img.src = url;
+      if (!img) return;
+      if (img._ewInitialSrc === undefined) img._ewInitialSrc = img.getAttribute('src');
+      var target = url || img._ewInitialSrc;
+      if (img.getAttribute('src') !== target) img.setAttribute('src', target);
     });
   }
 
