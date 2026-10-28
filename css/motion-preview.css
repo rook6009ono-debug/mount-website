@@ -4,7 +4,7 @@
 .mount-film .film-visual img,.mount-film .film-visual video{position:absolute;width:100%;height:100%;object-fit:cover;object-position:center 45%}
 .mount-film .film-visual video{opacity:0;transition:opacity .7s}
 .mount-film .mount-hero[data-film="playing"] video,.mount-film .mount-hero[data-film="paused"] video{opacity:1}
-.mount-film .film-visual::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(16,39,55,.88),rgba(16,39,55,.54) 42%,rgba(16,39,55,.06) 100%),linear-gradient(0deg,rgba(16,39,55,.65),transparent 40%)}
+.mount-film .film-visual::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(16,39,55,.52),rgba(16,39,55,.08) 75%),linear-gradient(0deg,rgba(16,39,55,.92),rgba(16,39,55,.1) 85%)}
 .mount-film .mount-hero-content{position:relative;z-index:1;padding:30px 4.6% 76px;margin:0;max-width:none}
 .mount-film .mount-hero h1{font-family:'Noto Sans JP',sans-serif;font-weight:900;font-size:clamp(36px,5.4svh,68px);line-height:1.3;letter-spacing:.025em}
 .mount-film .film-line{display:block;overflow:hidden;padding-bottom:.08em;margin-bottom:-.08em}
@@ -26,10 +26,35 @@
 .mount-film .mount-heading-note{font-size:11px}
 .mount-film .film-label{letter-spacing:.08em;opacity:.8}
 .mount-film .mount-button.secondary{background:#10273750}
+.mount-film .film-wordmark{position:absolute;right:4.6%;top:16px;z-index:1;font:600 clamp(64px,8vw,140px)/.85 'Oswald',sans-serif;letter-spacing:-.045em;color:transparent;-webkit-text-stroke:1px #ffffffb0;pointer-events:none}
+.mount-film .film-wordmark span{display:block;margin-top:15px;font:500 11px/1.3 'Noto Sans JP',sans-serif;letter-spacing:.3em;color:white;-webkit-text-stroke:0;text-align:right}
+.mount-film .film-outline{position:absolute;right:-2%;top:0;width:58%;height:100%;z-index:1;pointer-events:none;fill:none;stroke:#ffffff45;stroke-width:1;stroke-dasharray:1500;stroke-dashoffset:0}
+.mount-film .film-service{font:700 13px/1.5 'Noto Sans JP',sans-serif;letter-spacing:.18em;margin:0 0 12px}
+.mount-film .film-summary{max-width:460px}
 @media(min-width:901px){.mount-film .mount-first-view{grid-template-rows:minmax(min-content,1fr) auto}.mount-film .mount-hero{display:flex;align-items:center}.mount-film .mount-hero-content{width:100%}}
 @media(min-width:901px) and (max-height:760px){.mount-film .mount-hero-content{padding-top:20px;padding-bottom:62px}.mount-film .mount-hero h1{font-size:36px}.mount-film .mount-intro{margin-top:12px;max-width:620px}.mount-film .mount-actions{margin-top:14px}.mount-film .mount-button{min-height:42px;padding:8px 16px}.mount-film .mount-eyebrow{margin-bottom:10px}}
 @media(max-width:900px){.mount-film .mount-hero{min-height:590px}.mount-film .mount-hero-content{padding:45px 6% 130px}.mount-film .film-visual img,.mount-film .film-visual video{object-position:60% center}.mount-film .film-bottom{left:6%;right:6%;flex-wrap:wrap;bottom:20px}.mount-film .film-chapters{gap:16px;width:100%}.mount-film .film-controls{width:100%;justify-content:space-between}.mount-film .mount-intro{max-width:520px}}
+@media(min-width:901px){
+ .mount-film .mount-hero-content{display:grid;grid-template-columns:1.2fr 1fr;column-gap:5%;align-items:end;padding-top:34px;padding-bottom:74px}
+ .mount-film .mount-eyebrow{grid-column:1/-1;margin-bottom:16px}
+ .mount-film .mount-hero h1{font-size:clamp(46px,7.5svh,86px);line-height:1.17;letter-spacing:-.045em;margin:0}
+ .mount-film .mount-intro{font-size:13px;line-height:1.8;margin:0}
+ .mount-film .mount-actions{gap:10px;margin-top:20px;flex-wrap:wrap}
+ .mount-film .mount-button{min-height:44px;padding:10px 14px;font-size:12px}
+ .mount-film .film-summary{justify-self:end}
+}
+@media(max-width:900px){
+ .mount-film .mount-hero-content{padding-top:125px}
+ .mount-film .mount-hero h1{font-size:clamp(36px,9.7vw,64px);letter-spacing:-.045em;line-height:1.2}
+ .mount-film .film-wordmark{top:25px;right:6%;font-size:76px}
+ .mount-film .film-wordmark span{font-size:8px;margin-top:10px}
+ .mount-film .film-summary{margin-top:24px}
+ .mount-film .film-outline{width:100%;opacity:.6}
+ .mount-film .film-service{margin-bottom:8px;font-size:11px}
+}
 @media(prefers-reduced-motion:no-preference){
+ .mount-film .film-wordmark{animation:mount-wordmark 1.3s cubic-bezier(.16,1,.3,1) both}
+ .mount-film .film-outline path{animation:mount-outline 2.2s .2s both}
  .mount-film .mount-eyebrow{animation:mount-enter .8s both}
  .mount-film .film-line-text{animation:mount-impact .85s cubic-bezier(.16,1,.3,1) both;animation-delay:calc(.15s + var(--line-index)*.28s)}
  .mount-film .mount-intro{animation:mount-enter .9s .95s both}
@@ -38,5 +63,7 @@
  .mount-film .mount-strengths-grid article:nth-child(1){animation-delay:.7s}.mount-film .mount-strengths-grid article:nth-child(2){animation-delay:.85s}.mount-film .mount-strengths-grid article:nth-child(3){animation-delay:1s}.mount-film .mount-strengths-grid article:nth-child(4){animation-delay:1.15s}
  @keyframes mount-enter{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
  @keyframes mount-impact{from{opacity:0;transform:translateY(115%) skewY(5deg)}to{opacity:1;transform:translateY(0) skewY(0)}}
+ @keyframes mount-wordmark{from{opacity:0;transform:translateX(18%) scale(1.1)}to{opacity:1;transform:none}}
+ @keyframes mount-outline{from{stroke-dashoffset:1500}to{stroke-dashoffset:0}}
 }
 @media(prefers-reduced-motion:reduce){.mount-film *{animation:none!important;transition:none!important}}
