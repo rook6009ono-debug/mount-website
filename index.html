@@ -42,8 +42,8 @@
   ]
 }
 </script>
-</head>
-<body class="mount-home mount-model">
+<link rel="stylesheet" href="css/motion-preview.css?v=city3"></head>
+<body class="mount-home mount-film">
 
 <!-- ================= ヘッダー ================= -->
 <header class="site-header">
@@ -71,20 +71,23 @@
 <main>
 <div class="mount-first-view">
 <div class="mount-hero">
-  <figure class="mount-hero-photo"><img data-photo="hero-home" src="img/hero-diorama-v1.jpg" alt="株式会社マウントのトップイメージ" fetchpriority="high" width="1536" height="1024"><figcaption><span data-ew-text="hero-caption">建物の未来を、ともにつくる。</span><span data-ew-text="hero-caption-en">CONCEPT VISUAL</span></figcaption></figure>
+  <div class="film-visual" aria-hidden="true"><img src="img/renovation-film-poster.jpg?v=city3" alt=""><video id="mount-film" data-src="video/renovation-film.mp4?v=city3" muted playsinline preload="none" poster="img/renovation-film-poster.jpg?v=city3" tabindex="-1"></video></div>
   <div class="mount-hero-shade" aria-hidden="true"></div>
   <div class="mount-hero-angle" aria-hidden="true"></div>
+  <div class="film-wordmark" aria-hidden="true">RE:NEW<span>THE CITY. THE FUTURE.</span></div>
+  <svg class="film-outline" viewBox="0 0 700 400" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><path d="M700 360H400V60H210V280H80V400"/></svg>
   <div class="mount-hero-content">
     <p class="mount-eyebrow" data-ew-text="hero-eyebrow">RENEW THE PAST, BUILD THE FUTURE.</p>
     <h1 data-ew-text="hero-headline">建物を守り、<br>暮らしを支え、<br>次の世代へ。</h1>
+    <div class="film-summary"><p class="film-service">大規模修繕・改修工事</p>
     <p class="mount-intro" data-ew-text="hero-sub">大規模修繕・改修工事から電気工事まで。<br>調査・提案・施工・アフターフォローを一貫して行います。</p>
     <div class="mount-actions">
       <a href="contact.html" class="mount-button primary">工事のご相談・お見積り <span aria-hidden="true">→</span></a>
       <a href="about.html" class="mount-button secondary">マウントについて <span aria-hidden="true">→</span></a>
     </div>
-    <div class="mount-location"><p data-ew-text="hero-copy">住まいの、これからもずっと。</p><span>TACHIKAWA, TOKYO</span></div>
+    </div><div class="mount-location"><p data-ew-text="hero-copy">住まいの、これからもずっと。</p><span>TACHIKAWA, TOKYO</span></div>
   </div>
-  <span class="mount-side-label" aria-hidden="true">BUILD FOR TOMORROW</span>
+  <div class="film-bottom"><div class="film-chapters" aria-hidden="true"><span class="is-current"><b>01</b>建物を診る</span><span><b>02</b>確かに直す</span><span><b>03</b>未来へつなぐ</span></div><div class="film-controls"><span class="film-label" id="film-status" role="status">イメージ映像</span><button id="film-toggle" type="button">▶ 動画を見る</button><button id="film-skip" type="button" hidden>スキップ →</button></div></div><div class="film-progress" aria-hidden="true"><span id="film-progress"></span></div><span class="mount-side-label" aria-hidden="true">BUILD FOR TOMORROW</span>
   <a class="mount-scroll" href="#strengths">OUR STRENGTHS <span aria-hidden="true">↓</span></a>
 </div>
 <section class="mount-strengths" id="strengths" aria-labelledby="strengths-title">
@@ -273,5 +276,5 @@
 <script src="js/main.js"></script>
 <script src="equalweb-config.js"></script>
 <script src="js/equalweb.js?v=20261028"></script>
-</body>
+<script src="js/motion-preview.js?v=city3"></script></body>
 </html>
