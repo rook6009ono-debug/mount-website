@@ -282,7 +282,7 @@
     fetch(API).then(function (r) { return r.json(); }).then(function (d) { render(d, false); })
       .catch(function (e) { console.warn('Equal Web API 接続エラー:', e); render(MOCK, true); });
   }
-  if (document.getElementById('ewNews') || document.querySelector('[data-ew]')) {
+  if (document.getElementById('ewNews') || document.querySelector('[data-ew], [data-ew-text], [data-photo]')) {
     load();
     if (API) setInterval(load, 60000); // 1分ごとに自動更新
   }

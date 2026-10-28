@@ -4,6 +4,8 @@
 .business-map-page .brand .en,.business-map-page .brand .jp{color:#102737}
 .business-map-page .gnav .nv{color:#102737}
 .business-map-page .nav-tgl span{background:#102737}
+.business-map-page .service-dialog #detail-description{white-space:pre-line}
+@media(max-width:1000px){.business-map-page .gnav{background:#f5f7f5}.business-map-page.nav-open .site-header{transform:none}}
 .map-intro{max-width:1440px;margin:auto;padding:42px 4% 20px;display:flex;align-items:end;justify-content:space-between;gap:24px}
 .map-kicker{font:500 13px 'Oswald',sans-serif;letter-spacing:.24em;color:#607f6b;margin-bottom:10px}
 .map-intro h1{font-size:clamp(25px,3vw,43px);letter-spacing:-.035em;line-height:1.35}
