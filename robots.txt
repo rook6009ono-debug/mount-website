@@ -1,4 +1,5 @@
-# ステージング公開中のため全クローラーを拒否。
-# 本番公開時にこのファイルを差し替えること。
 User-agent: *
-Disallow: /
+Allow: /
+Disallow: /invoice/
+
+Sitemap: https://mount-inc.com/sitemap.xml
