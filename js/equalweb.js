@@ -214,12 +214,12 @@
      map = {slot: 画像URL}。URLが設定されているスロットだけ差し替え、
      未設定のスロットはHTMLに書かれた初期写真のまま。 */
   function applyPhotos(map) {
-    if (!map) return;
+    map = map || {};
     Array.prototype.forEach.call(document.querySelectorAll('[data-photo]'), function (el) {
       var url = map[el.getAttribute('data-photo')];
       var img = el.tagName === 'IMG' ? el : el.querySelector('img');
       if (!img) return;
-      if (img._ewInitialSrc === undefined) img._ewInitialSrc = img.getAttribute('src');
+      if (img._ewInitialSrc === undefined) img._ewInitialSrc = img.getAttribute('data-photo-initial') || img.getAttribute('src');
       var target = url || img._ewInitialSrc;
       if (img.getAttribute('src') !== target) img.setAttribute('src', target);
     });
