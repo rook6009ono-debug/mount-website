@@ -146,7 +146,7 @@
         if(key==='unassigned')grid.parentElement.hidden=!list.length;
         grid.className='service-case-grid';
         grid.innerHTML=list.length ? list.map(function(a,i){return '<button type="button" class="service-case" data-case-index="'+i+'">'+(a.thumbnail_url?'<img src="'+esc(a.thumbnail_url)+'" alt="" loading="lazy">':'')+'<span><small>'+esc(fmtD(a.published_at))+'</small><strong>'+esc(a.title)+'</strong>'+(a.summary?'<span>'+esc(a.summary)+'</span>':'')+'<em>施工事例を見る →</em></span></button>';}).join('') : '<p class="cases-empty">施工事例は準備中です。</p>';
-        grid.querySelectorAll('[data-case-index]').forEach(function(card){card.onclick=function(){var a=list[Number(card.dataset.caseIndex)];var dialog=document.getElementById('case-dialog');if(!dialog){dialog=document.createElement('dialog');dialog.id='case-dialog';dialog.className='service-dialog';dialog.setAttribute('aria-labelledby','case-title');dialog.innerHTML='<button type="button" class="dialog-close" aria-label="施工事例を閉じる">×</button><div class="map-kicker">WORKS / 施工事例</div><h2 id="case-title"></h2><div class="case-body"></div>';document.body.appendChild(dialog);dialog.querySelector('button').onclick=function(){dialog.close();};}dialog.querySelector('h2').textContent=a.title;dialog.querySelector('.case-body').innerHTML=md(a.body);dialog.showModal();};});
+        grid.querySelectorAll('[data-case-index]').forEach(function(card){card.onclick=function(){var a=list[Number(card.dataset.caseIndex)];var dialog=document.getElementById('case-dialog');if(!dialog){dialog=document.createElement('dialog');dialog.id='case-dialog';dialog.className='service-dialog';dialog.setAttribute('aria-labelledby','case-title');dialog.innerHTML='<button type="button" class="dialog-close" aria-label="施工事例を閉じる">×</button><div class="map-kicker">WORKS / 施工事例</div><h2 id="case-title"></h2><div class="case-body"></div>';document.body.appendChild(dialog);dialog.querySelector('button').onclick=function(){dialog.close();};}dialog.querySelector('h2').textContent=a.title;dialog.querySelector('.case-body').innerHTML=(a.thumbnail_url?'<p><img src=\"'+esc(a.thumbnail_url)+'\" alt=\"\" style=\"max-width:100%\"></p>':'')+md(a.body);dialog.showModal();};});
       });
     }
     var grid = document.getElementById('ewWorks');
@@ -227,7 +227,8 @@
 
   /* ---- 描画・取得 ---- */
   function render(d, isMock) {
-    renderNews(d.news || []);
+    var posts=(d.articles || []).filter(function(a){return a.category !== '施工事例';}).map(function(a){return Object.assign({},a,{category:'記事',image_url:a.thumbnail_url});});
+    renderNews((d.news || []).concat(posts).sort(function(a,b){return Number(!!b.is_pinned)-Number(!!a.is_pinned) || String(b.published_at).localeCompare(String(a.published_at));}));
       renderWorks(isMock && document.getElementById('service-details') ? [] : (d.articles || []));
     fillCompany(d.company);
     renderSettings(d.settings || []);
