@@ -18,6 +18,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css?v=mount-20261109">
+<style>img[data-photo-initial]:not([src]){visibility:hidden}</style>
 </head>
 <body>
 
@@ -43,7 +44,7 @@
 </header>
 
 <div class="page-hero">
-  <div class="bgimg"><img src="img/about-hero.jpg" alt="" data-photo="hero-about"></div>
+  <div class="bgimg"><img data-photo-initial="img/about-hero.jpg" alt="" data-photo="hero-about"></div>
   <svg class="peaks" viewBox="0 0 1440 320" preserveAspectRatio="none" aria-hidden="true">
     <path d="M0 320 L260 120 L430 250 L640 70 L840 240 L1050 120 L1250 230 L1440 150 L1440 320 Z" fill="rgba(255,255,255,.045)"/>
     <path d="M0 320 L200 210 L420 295 L700 160 L950 285 L1180 195 L1440 295 L1440 320 Z" fill="rgba(20,138,77,.14)"/>
@@ -67,7 +68,7 @@
         <a class="btn" href="#company">会社概要を見る <span class="ar">→</span></a>
       </div>
       <figure class="pic plx" data-photo="top-about" style="min-height:380px">
-        <img src="img/company.jpg" alt="株式会社マウント 本社社屋" loading="lazy">
+        <img data-photo-initial="img/company.jpg" alt="株式会社マウント 本社社屋" loading="lazy">
         <span class="cap">HEAD OFFICE — TACHIKAWA</span>
       </figure>
     </div>
@@ -93,7 +94,7 @@
       <div class="jp">代表からの挨拶</div>
     </div>
     <div class="greet">
-      <figure class="pic plx" data-photo="ceo"><img src="img/ceo.jpg" alt="代表取締役 仲 隆宏" loading="lazy"></figure>
+      <figure class="pic plx" data-photo="ceo"><img data-photo-initial="img/ceo.jpg" alt="代表取締役 仲 隆宏" loading="lazy"></figure>
       <div class="rv rv-d1">
         <div class="prose" data-ew-text="greeting-body">
           <p>弊社株式会社マウントは、防水工事を主体とする工事会社として平成19年に創業し、以降皆様のご支援、ご協力を経て現在はリニューアル工事全般の工事を行うことができるまでに成長することができました。</p>
@@ -254,6 +255,6 @@
 
 <script src="js/main.js?v=mount-20261109"></script>
 <script src="equalweb-config.js"></script>
-<script src="js/equalweb.js"></script>
+<script src="js/equalweb.js?v=photo-first-20261109"></script>
 </body>
 </html>
