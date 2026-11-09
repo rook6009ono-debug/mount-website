@@ -42,7 +42,8 @@
   ]
 }
 </script>
-<link rel="stylesheet" href="css/motion-preview.css?v=city3"></head>
+<link rel="stylesheet" href="css/motion-preview.css?v=city3"><style>img[data-photo-initial]:not([src]){visibility:hidden}</style>
+</head>
 <body class="mount-home mount-film">
 
 <!-- ================= ヘッダー ================= -->
@@ -133,7 +134,7 @@
         <a class="btn" href="about.html">会社概要・理念を見る <span class="ar">→</span></a>
       </div>
       <figure class="pic plx" data-photo="top-about" style="min-height:380px">
-        <img src="img/company.jpg" alt="株式会社マウント 本社社屋" loading="lazy">
+        <img data-photo-initial="img/company.jpg" alt="株式会社マウント 本社社屋" loading="lazy">
         <span class="cap">HEAD OFFICE — TACHIKAWA</span>
       </figure>
     </div>
@@ -175,7 +176,7 @@
     <p class="center" style="margin:20px 0 30px"><a class="btn" href="business.html">動く街から、私たちの仕事を見る →</a></p>
     <div class="biz-grid">
       <a class="biz-card rv" href="renovation.html">
-        <figure class="pic" data-photo="top-renovation"><img src="img/top-renovation.jpg" alt="リノベーション工事" loading="lazy"></figure>
+        <figure class="pic" data-photo="top-renovation"><img data-photo-initial="img/top-renovation.jpg" alt="リノベーション工事" loading="lazy"></figure>
         <div class="bd">
           <span class="en">RENOVATION</span>
           <h3>リノベーション工事</h3>
@@ -184,7 +185,7 @@
         </div>
       </a>
       <a class="biz-card rv rv-d1" href="electric.html">
-        <figure class="pic" data-photo="top-electric"><img src="img/top-electric.png" alt="電気事業" loading="lazy"></figure>
+        <figure class="pic" data-photo="top-electric"><img data-photo-initial="img/top-electric.png" alt="電気事業" loading="lazy"></figure>
         <div class="bd">
           <span class="en">ELECTRIC</span>
           <h3>電気事業</h3>
@@ -277,6 +278,6 @@
 
 <script src="js/main.js?v=mount-20261109"></script>
 <script src="equalweb-config.js"></script>
-<script src="js/equalweb.js?v=20261028"></script>
+<script src="js/equalweb.js?v=all-photos-20261109"></script>
 <script src="js/motion-preview.js?v=city3"></script></body>
 </html>

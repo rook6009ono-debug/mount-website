@@ -18,6 +18,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css?v=mount-20261109">
+<style>img[data-photo-initial]:not([src]){visibility:hidden}</style>
 </head>
 <body>
 
@@ -43,7 +44,7 @@
 </header>
 
 <div class="page-hero">
-  <div class="bgimg"><img src="img/recruit-hero.jpg" alt="" data-photo="hero-recruit"></div>
+  <div class="bgimg"><img data-photo-initial="img/recruit-hero.jpg" alt="" data-photo="hero-recruit"></div>
   <svg class="peaks" viewBox="0 0 1440 320" preserveAspectRatio="none" aria-hidden="true">
     <path d="M0 320 L260 120 L430 250 L640 70 L840 240 L1050 120 L1250 230 L1440 150 L1440 320 Z" fill="rgba(255,255,255,.045)"/>
     <path d="M0 320 L200 210 L420 295 L700 160 L950 285 L1180 195 L1440 295 L1440 320 Z" fill="rgba(20,138,77,.14)"/>
@@ -72,7 +73,7 @@
         <a class="btn" href="contact.html">まずは話を聞いてみる <span class="ar">→</span></a>
       </div>
       <figure class="pic plx" data-photo="recruit-message" style="min-height:380px">
-        <img src="img/works-main.jpg" alt="マウントの施工現場" loading="lazy">
+        <img data-photo-initial="img/works-main.jpg" alt="マウントの施工現場" loading="lazy">
         <span class="cap">MOUNT WORKS</span>
       </figure>
     </div>
@@ -282,6 +283,6 @@
 
 <script src="js/main.js?v=mount-20261109"></script>
 <script src="equalweb-config.js"></script>
-<script src="js/equalweb.js"></script>
+<script src="js/equalweb.js?v=all-photos-20261109"></script>
 </body>
 </html>
