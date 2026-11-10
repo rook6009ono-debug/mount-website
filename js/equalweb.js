@@ -227,6 +227,7 @@
       if (!img) return;
       if (img._ewInitialSrc === undefined) img._ewInitialSrc = img.getAttribute('data-photo-initial') || img.getAttribute('src');
       var target = url || img._ewInitialSrc;
+      if (!target) { img.removeAttribute('src'); return; }
       if (img.getAttribute('src') !== target) img.setAttribute('src', target);
     });
   }
