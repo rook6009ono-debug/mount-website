@@ -744,3 +744,5 @@ body.nav-open .nav-tgl span:nth-child(3){top:23px;transform:rotate(-45deg)}
 
 
 .mount-home .site-header .mount-logo,.business-map-page .site-header .mount-logo{filter:none}
+/* Company wordmark: use the existing sans-serif, bold weight and compact spacing. */
+.site-header .brand .tx .jp,.site-footer .brand .tx .jp{font-family:var(--jp);font-size:16px;font-weight:700;letter-spacing:.06em;line-height:1.4;margin-top:0;white-space:nowrap;color:inherit}
