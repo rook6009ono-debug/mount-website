@@ -82,6 +82,12 @@
     });
   }
 
+  function renderArticles(list) {
+    var el=document.getElementById('ewArticles');if(!el)return;
+    el.innerHTML=list.length?list.map(function(a,i){return '<button type="button" class="wk-card article-card" data-article-index="'+i+'">'+(a.thumbnail_url?'<div class="wk-thumb"><img src="'+esc(a.thumbnail_url)+'" alt="" loading="lazy"></div>':'<div class="wk-thumb wk-thumb-ph">記事</div>')+'<div class="wk-bd"><div class="wk-date">'+esc(fmtD(a.published_at))+'</div><h3 class="wk-title">'+esc(a.title)+'</h3><p class="wk-sum">'+esc(a.summary||'')+'</p></div></button>';}).join(''):'<p>記事は準備中です。</p>';
+    el.querySelectorAll('[data-article-index]').forEach(function(card){card.onclick=function(){var a=list[Number(card.dataset.articleIndex)];var body=(a.thumbnail_url?'<p><img src="'+esc(a.thumbnail_url)+'" alt=""></p>':'')+String(a.body||'').split(/\n/).map(function(p){return p.trim()?'<p>'+esc(p)+'</p>':'';}).join('');openModal('<span>記事</span><span>'+esc(fmtD(a.published_at))+'</span>',a.title,body);};});
+  }
+
   /* ---- 説明文差し替え（[data-ew-text] がある場合のみ）----
      map = {slot: 文章}。文章が設定されているスロットだけ差し替え、
      未設定のスロットはHTMLに書かれた初期の文章のまま。
@@ -228,7 +234,8 @@
   /* ---- 描画・取得 ---- */
   function render(d, isMock) {
     var posts=(d.articles || []).filter(function(a){return a.category !== '施工事例';}).map(function(a){return Object.assign({},a,{category:'記事',image_url:a.thumbnail_url});});
-    renderNews((d.news || []).concat(posts).sort(function(a,b){return Number(!!b.is_pinned)-Number(!!a.is_pinned) || String(b.published_at).localeCompare(String(a.published_at));}));
+    renderNews(d.news || []);
+    renderArticles(posts);
       renderWorks(isMock && document.getElementById('service-details') ? [] : (d.articles || []));
     fillCompany(d.company);
     renderSettings(d.settings || []);
@@ -251,7 +258,7 @@
   }
   function loadFailed(e) {
     console.warn('Equal Web API 接続エラー:', e);
-    if (!contentLoaded) ['ewNews', 'ewWorks'].forEach(function (id) {
+    if (!contentLoaded) ['ewNews', 'ewArticles', 'ewWorks'].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) el.textContent = '現在情報を取得できません。時間をおいて再度ご確認ください。';
     });
